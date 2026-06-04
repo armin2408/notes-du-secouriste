@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>NOTES DU SECOURISTE — Thèmes couleur</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #0d0d0d; color: #f5f5f5; margin: 0; padding: 24px; }
+    h1 { font-size: 1.5rem; }
+    .theme { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 24px 0; }
+    .swatch { border-radius: 8px; padding: 16px; min-height: 80px; font-size: 12px; }
+    .preview { max-width: 360px; margin-top: 32px; border-radius: 12px; overflow: hidden; border: 1px solid #333; }
+    .preview header { background: #1e1e1e; padding: 16px; }
+    .preview .cta { background: #e53935; color: #fff; margin: 16px; padding: 20px; border-radius: 12px; text-align: center; font-weight: 600; }
+    .preview .row { display: flex; gap: 8px; padding: 0 16px 16px; }
+    .preview .card { flex: 1; background: #1e1e1e; padding: 16px; border-radius: 8px; text-align: center; font-size: 14px; }
+    .field-warn { border: 2px solid #ffa726; background: #1e1e1e; margin: 8px 16px; padding: 12px; border-radius: 8px; }
+    .field-crit { border: 2px solid #ef5350; background: #1e1e1e; margin: 8px 16px 16px; padding: 12px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>NOTES DU SECOURISTE — Direction D1 « Terrain nocturne »</h1>
+  <p>Thème sombre par défaut — contrastes élevés, rouge secours sobre.</p>
+  <div class="theme">
+    <div class="swatch" style="background:#121212">background<br>#121212</div>
+    <div class="swatch" style="background:#1e1e1e">surface<br>#1E1E1E</div>
+    <div class="swatch" style="background:#e53935;color:#fff">primary<br>#E53935</div>
+    <div class="swatch" style="background:#1565c0;color:#fff">secondary<br>#1565C0</div>
+    <div class="swatch" style="background:#ffa726;color:#000">alert-warning<br>#FFA726</div>
+    <div class="swatch" style="background:#ef5350;color:#fff">alert-critical<br>#EF5350</div>
+    <div class="swatch" style="background:#42a5f5;color:#000">status-draft<br>#42A5F5</div>
+    <div class="swatch" style="background:#78909c">status-closed<br>#78909C</div>
+  </div>
+  <h2>Aperçu accueil</h2>
+  <div class="preview">
+    <header>NOTES DU SECOURISTE · Hors ligne</header>
+    <div class="cta">+ Nouvelle intervention<br><small>Notes secouriste</small></div>
+    <div class="row">
+      <div class="card">Aide mémoire</div>
+      <div class="card">Historique</div>
+    </div>
+    <div class="field-warn">TA 180/110 — alerte limite</div>
+    <div class="field-crit">FC 40 — alerte critique</div>
+  </div>
+</body>
+</html>

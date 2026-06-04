@@ -1,0 +1,22 @@
+# Android
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/**/*.apk
+android/**/*.aab
+android/keystore.properties
+android/release-keystore.jks
+android/*.jks
+android/*.keystore
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.cursor/
+
+# Secrets locaux
+**/.env
+**/*.keystore
+**/*.jks

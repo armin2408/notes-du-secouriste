@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>NOTES DU SECOURISTE — Directions design</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #111; color: #eee; margin: 0; padding: 24px; }
+    h1 { font-size: 1.25rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 24px; }
+    .phone { width: 100%; max-width: 340px; border-radius: 24px; border: 3px solid #333; overflow: hidden; background: #121212; }
+    .phone h3 { margin: 0; padding: 12px 16px; background: #1a1a1a; font-size: 14px; }
+    .screen { padding: 16px; min-height: 420px; font-size: 13px; }
+    .cta { background: #e53935; color: #fff; padding: 18px; border-radius: 12px; text-align: center; margin-bottom: 12px; font-weight: 600; }
+    .card { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 8px; }
+    .selected { outline: 3px solid #66bb6a; }
+    .tag { display: inline-block; background: #66bb6a; color: #000; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Directions design — NOTES DU SECOURISTE</h1>
+  <p><strong>Retenue : D1 Terrain nocturne (compact)</strong></p>
+  <div class="grid">
+    <div class="phone selected">
+      <h3>D1 — Terrain nocturne <span class="tag">RETENU</span></h3>
+      <div class="screen">
+        <div style="opacity:.7;font-size:11px">Hors ligne</div>
+        <div class="cta">+ Nouvelle intervention<br><small>Notes secouriste</small></div>
+        <div style="display:flex;gap:8px">
+          <div class="card" style="flex:1">Aide mémoire</div>
+          <div class="card" style="flex:1">Historique</div>
+        </div>
+        <p style="margin-top:16px;color:#888">Saisie : cartes blocs scroll · barre basse Récap / Script / Clôturer</p>
+      </div>
+    </div>
+    <div class="phone">
+      <h3>D2 — Clair terrain</h3>
+      <div class="screen" style="background:#f5f5f5;color:#212121">
+        <div class="cta" style="background:#c62828">+ Nouvelle intervention</div>
+        <div class="card" style="background:#fff;border:1px solid #ddd">Blocs larges · fort contraste jour</div>
+      </div>
+    </div>
+    <div class="phone">
+      <h3>D3 — Minimal liste</h3>
+      <div class="screen">
+        <div class="card">Liste blocs type checklist</div>
+        <div class="card">Moins de cartes · plus dense</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

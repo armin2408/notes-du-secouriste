@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Notes du Secouriste</string>
+    <string name="app_beta_badge">Beta</string>
+    <string name="home_new_intervention">Nouvelle note</string>
+    <string name="home_list_empty">Aucune intervention enregistrée.</string>
+    <string name="content_description_aide_memoire">Aide mémoire</string>
+    <string name="content_description_toggle_theme">Changer le thème</string>
+    <string name="content_description_settings">Réglages</string>
+    <string name="status_draft">Brouillon</string>
+    <string name="status_closed">Clôturée</string>
+    <string name="settings_title">Réglages</string>
+    <string name="settings_theme_section">Thème à l\'ouverture</string>
+    <string name="settings_theme_hint">Le bouton soleil/lune sur l\'accueil change le thème immédiatement.</string>
+    <string name="settings_theme_system">Thème système</string>
+    <string name="settings_theme_system_desc">Comme mon téléphone.</string>
+    <string name="settings_theme_last_chosen">Dernier thème choisi</string>
+    <string name="settings_theme_last_chosen_desc">Toujours comme je l\'ai laissé dans l\'app.</string>
+
+    <string name="content_description_delete_intervention">Supprimer l\'intervention</string>
+    <string name="content_description_open_recap">Afficher le récap</string>
+    <string name="delete_confirm_title">Supprimer ?</string>
+    <string name="delete_confirm_single">Cette intervention et toutes ses notes seront supprimées définitivement.</string>
+    <string name="delete_confirm_multiple">%1$d interventions et leurs notes seront supprimées définitivement.</string>
+    <string name="delete_confirm_action">Supprimer</string>
+    <string name="delete_cancel">Annuler</string>
+    <string name="home_selection_count">%1$d sélectionnée(s)</string>
+    <string name="home_selection_hint">Appuyez sur les cartes pour sélectionner ou désélectionner.</string>
+    <string name="home_selection_cancel">Annuler la sélection</string>
+    <string name="home_selection_delete">Supprimer la sélection</string>
+</resources>
