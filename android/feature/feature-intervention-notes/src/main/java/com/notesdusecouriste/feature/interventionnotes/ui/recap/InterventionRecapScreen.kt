@@ -37,13 +37,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.notesdusecouriste.core.ui.preview.ResponsivePreviews
+import com.notesdusecouriste.core.ui.preview.ThemePreviews
+import com.notesdusecouriste.core.ui.theme.NotesDuSecouristeTheme
 import com.notesdusecouriste.feature.interventionnotes.R
 
 private val RecapBodyFontSize = 22.sp
 private val RecapLabelFontSize = 13.sp
 private val RecapQuestionnaireTitleFontSize = 20.sp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InterventionRecapScreen(
     onBack: () -> Unit,
@@ -52,6 +54,24 @@ fun InterventionRecapScreen(
     viewModel: InterventionRecapViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    RecapContent(
+        uiState = uiState,
+        onBack = onBack,
+        onComplete = onComplete,
+        onToggleColumnsExpanded = viewModel::toggleMesuresColumnsExpanded,
+        actions = actions,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun RecapContent(
+    uiState: InterventionRecapUiState,
+    onBack: () -> Unit,
+    onComplete: () -> Unit,
+    onToggleColumnsExpanded: () -> Unit,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
     val recap = uiState.recap
     val measuresTable = recap.measuresTable
     val tableScrollState = rememberScrollState()
@@ -142,7 +162,7 @@ fun InterventionRecapScreen(
                     stickyHeader(key = "sticky_mesures_title") {
                         RecapMesuresSectionTitle(
                             columnsExpanded = uiState.mesuresColumnsExpanded,
-                            onToggleColumnsExpanded = viewModel::toggleMesuresColumnsExpanded,
+                            onToggleColumnsExpanded = onToggleColumnsExpanded,
                         )
                     }
                     stickyHeader(key = "sticky_mesures_header") {
@@ -327,6 +347,106 @@ private fun RecapLineRow(
             text = line.value,
             style = MaterialTheme.typography.bodyLarge.copy(fontSize = RecapBodyFontSize),
             color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Previews — test responsive (tailles/ratios) sans émulateur.
+// ---------------------------------------------------------------------------
+
+private fun sampleRecapUiState(): InterventionRecapUiState = InterventionRecapUiState(
+    headerTitle = "DURAND Camille · 34 ans",
+    mesuresColumnsExpanded = false,
+    recap = InterventionRecap(
+        identityLines = listOf(
+            RecapLine("Nom", "DURAND"),
+            RecapLine("Prénom", "Camille"),
+            RecapLine("Date de naissance", "12/03/1991 (34 ans)"),
+            RecapLine("Coordonnées", "06 12 34 56 78"),
+        ),
+        measuresTable = RecapMeasuresTable(
+            columnHeaders = listOf("14:05", "14:12", "14:20", "14:31"),
+            rows = listOf(
+                RecapTableRow.SectionHeader("Respiration"),
+                RecapTableRow.Measure(
+                    label = "Fréquence",
+                    cells = listOf(
+                        RecapTableCell("18 bpm", RecapCellTone.Green),
+                        RecapTableCell("22 bpm", RecapCellTone.Yellow),
+                        RecapTableCell("28 bpm", RecapCellTone.Orange),
+                        RecapTableCell("20 bpm", RecapCellTone.Green),
+                    ),
+                ),
+                RecapTableRow.SectionHeader("Circulation"),
+                RecapTableRow.Measure(
+                    label = "Tension artérielle",
+                    cells = listOf(
+                        RecapTableCell("12/8"),
+                        RecapTableCell("13/9"),
+                        RecapTableCell("11/7"),
+                        RecapTableCell("12/8"),
+                    ),
+                ),
+                RecapTableRow.Measure(
+                    label = "SpO₂",
+                    cells = listOf(
+                        RecapTableCell("98 %", RecapCellTone.Green),
+                        RecapTableCell("96 %", RecapCellTone.Green),
+                        RecapTableCell("92 %", RecapCellTone.Orange),
+                        RecapTableCell("97 %", RecapCellTone.Green),
+                    ),
+                ),
+            ),
+        ),
+        questionnaires = listOf(
+            RecapSubSection(
+                title = "SAMPLE",
+                lines = listOf(
+                    RecapLine("S — Signes / Symptômes", "Douleur thoracique"),
+                    RecapLine("A — Allergies", "Pénicilline"),
+                ),
+            ),
+        ),
+        comment = "Patient conscient, orienté. Mise au repos, surveillance des constantes.",
+    ),
+)
+
+@ResponsivePreviews
+@Composable
+private fun RecapContentResponsivePreview() {
+    NotesDuSecouristeTheme {
+        RecapContent(
+            uiState = sampleRecapUiState(),
+            onBack = {},
+            onComplete = {},
+            onToggleColumnsExpanded = {},
+        )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun RecapContentThemePreview() {
+    NotesDuSecouristeTheme {
+        RecapContent(
+            uiState = sampleRecapUiState(),
+            onBack = {},
+            onComplete = {},
+            onToggleColumnsExpanded = {},
+        )
+    }
+}
+
+@ResponsivePreviews
+@Composable
+private fun RecapContentEmptyPreview() {
+    NotesDuSecouristeTheme {
+        RecapContent(
+            uiState = InterventionRecapUiState(headerTitle = "Nouvelle intervention"),
+            onBack = {},
+            onComplete = {},
+            onToggleColumnsExpanded = {},
         )
     }
 }

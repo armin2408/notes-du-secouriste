@@ -18,13 +18,11 @@ Dépôt GitHub : **`notes-du-secouriste`** (privé OK).
 
 ## URL pour la Play Console
 
-Remplacez `VOTRE_COMPTE` par votre identifiant GitHub :
+URL (dépôt **armin2408/notes-du-secouriste**) :
 
 ```
-https://VOTRE_COMPTE.github.io/notes-du-secouriste/
+https://armin2408.github.io/notes-du-secouriste/
 ```
-
-Exemple : `https://martin.github.io/notes-du-secouriste/`
 
 Coller cette URL dans **Fiche Play Store** → **Politique de confidentialité**.
 

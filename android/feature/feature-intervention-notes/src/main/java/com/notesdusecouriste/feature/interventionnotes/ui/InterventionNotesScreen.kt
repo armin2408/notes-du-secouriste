@@ -4,12 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -29,6 +25,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.notesdusecouriste.core.ui.systembars.navigationBarBottomPadding
+import com.notesdusecouriste.core.ui.systembars.scaffoldContentWithoutNavigationBar
 import com.notesdusecouriste.feature.interventionnotes.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +44,7 @@ fun InterventionNotesScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = scaffoldContentWithoutNavigationBar(),
         topBar = {
             TopAppBar(
                 title = {
@@ -70,16 +69,16 @@ fun InterventionNotesScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        bottomBar = {
-            NotesBottomActionBar(onRecap = onRecap)
-        },
     ) { padding ->
         InterventionNotesListContent(
             viewModel = viewModel,
+            onRecap = onRecap,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(bottom = 16.dp),
+            contentPadding = PaddingValues(
+                bottom = navigationBarBottomPadding(extra = 16.dp),
+            ),
         )
     }
 }
@@ -103,23 +102,4 @@ private fun saveStatusText(uiState: InterventionNotesUiState): String? = when {
     uiState.isSaving -> stringResource(R.string.notes_saving)
     uiState.lastSavedAtEpochMillis != null -> stringResource(R.string.notes_saved)
     else -> null
-}
-
-@Composable
-private fun NotesBottomActionBar(onRecap: () -> Unit) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 4.dp,
-    ) {
-        Button(
-            onClick = onRecap,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp)
-                .heightIn(min = 48.dp),
-            shape = MaterialTheme.shapes.large,
-        ) {
-            Text(stringResource(R.string.action_recap))
-        }
-    }
 }

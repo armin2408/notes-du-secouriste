@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="notes_new_note">Nouvelle note</string>
-    <string name="notes_saved">Enregistré</string>
-    <string name="notes_saving">Enregistrement…</string>
+    <string name="notes_saved">✅ Enregistré</string>
+    <string name="notes_saving">🔁 Enregistrement…</string>
 
     <string name="block_victime">VICTIME</string>
     <string name="block_mesures">MESURES</string>
@@ -72,7 +72,7 @@
     <string name="recap_sat_o2">Sat. O₂</string>
     <string name="recap_freq_card">Freq. card.</string>
     <string name="recap_tension">T/A</string>
-    <string name="recap_title">Récap transmission</string>
+    <string name="recap_title">Récap.</string>
     <string name="recap_back">Retour aux notes</string>
     <string name="recap_expand_time_columns">Agrandir les colonnes horaires</string>
     <string name="recap_collapse_time_columns">Réduire les colonnes horaires</string>

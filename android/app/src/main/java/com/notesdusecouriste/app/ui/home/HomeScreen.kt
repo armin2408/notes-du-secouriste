@@ -1,8 +1,8 @@
 package com.notesdusecouriste.app.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,9 +37,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,8 +47,14 @@ import com.notesdusecouriste.app.R
 import com.notesdusecouriste.app.ui.components.AideMemoireThemeActions
 import com.notesdusecouriste.app.ui.theme.AppThemeViewModel
 import com.notesdusecouriste.app.ui.theme.appThemeViewModel
+import com.notesdusecouriste.core.data.model.Intervention
+import com.notesdusecouriste.core.data.model.InterventionStatus
+import com.notesdusecouriste.core.ui.preview.ResponsivePreviews
+import com.notesdusecouriste.core.ui.preview.ThemePreviews
+import com.notesdusecouriste.core.ui.systembars.navigationBarBottomPadding
+import com.notesdusecouriste.core.ui.systembars.scaffoldContentWithoutNavigationBar
+import com.notesdusecouriste.core.ui.theme.NotesDuSecouristeTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNewIntervention: (Long) -> Unit,
@@ -62,6 +68,49 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val interventions by viewModel.interventions.collectAsStateWithLifecycle()
     val isDark by themeViewModel.effectiveIsDark.collectAsStateWithLifecycle()
+
+    HomeScreenContent(
+        uiState = uiState,
+        interventions = interventions,
+        isDark = isDark,
+        onNewIntervention = { viewModel.createIntervention(onNewIntervention) },
+        onAideMemoire = onAideMemoire,
+        onToggleTheme = { themeViewModel.toggleTheme(isDark) },
+        onSettings = onSettings,
+        onOpenIntervention = onOpenIntervention,
+        onOpenRecap = onOpenRecap,
+        onInterventionLongPress = viewModel::onInterventionLongPress,
+        onToggleSelection = viewModel::toggleSelection,
+        onRequestDeleteSingle = viewModel::requestDeleteSingle,
+        onExitSelectionMode = viewModel::exitSelectionMode,
+        onRequestDeleteSelected = viewModel::requestDeleteSelected,
+        onConfirmDelete = viewModel::confirmDelete,
+        onDismissDeleteConfirm = viewModel::dismissDeleteConfirm,
+        onErrorConsumed = viewModel::clearError,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun HomeScreenContent(
+    uiState: HomeUiState,
+    interventions: List<Intervention>,
+    isDark: Boolean,
+    onNewIntervention: () -> Unit,
+    onAideMemoire: () -> Unit,
+    onToggleTheme: () -> Unit,
+    onSettings: () -> Unit,
+    onOpenIntervention: (Long) -> Unit,
+    onOpenRecap: (Long) -> Unit,
+    onInterventionLongPress: (Long) -> Unit,
+    onToggleSelection: (Long) -> Unit,
+    onRequestDeleteSingle: (Long) -> Unit,
+    onExitSelectionMode: () -> Unit,
+    onRequestDeleteSelected: () -> Unit,
+    onConfirmDelete: () -> Unit,
+    onDismissDeleteConfirm: () -> Unit,
+    onErrorConsumed: () -> Unit,
+) {
     val snackbarHostState = remember { SnackbarHostState() }
     val topBarColors = TopAppBarDefaults.topAppBarColors(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -71,7 +120,7 @@ fun HomeScreen(
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
-            viewModel.clearError()
+            onErrorConsumed()
         }
     }
 
@@ -82,12 +131,12 @@ fun HomeScreen(
                 stringResource(R.string.delete_confirm_multiple, request.ids.size)
         }
         AlertDialog(
-            onDismissRequest = { viewModel.dismissDeleteConfirm() },
+            onDismissRequest = onDismissDeleteConfirm,
             title = { Text(stringResource(R.string.delete_confirm_title)) },
             text = { Text(message) },
             confirmButton = {
                 TextButton(
-                    onClick = { viewModel.confirmDelete() },
+                    onClick = onConfirmDelete,
                     enabled = !uiState.isDeleting,
                 ) {
                     Text(stringResource(R.string.delete_confirm_action))
@@ -95,7 +144,7 @@ fun HomeScreen(
             },
             dismissButton = {
                 TextButton(
-                    onClick = { viewModel.dismissDeleteConfirm() },
+                    onClick = onDismissDeleteConfirm,
                     enabled = !uiState.isDeleting,
                 ) {
                     Text(stringResource(R.string.delete_cancel))
@@ -106,6 +155,7 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = scaffoldContentWithoutNavigationBar(),
         topBar = {
             if (uiState.isSelectionMode) {
                 TopAppBar(
@@ -118,7 +168,7 @@ fun HomeScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { viewModel.exitSelectionMode() }) {
+                        IconButton(onClick = onExitSelectionMode) {
                             Icon(
                                 imageVector = Icons.Outlined.Close,
                                 contentDescription = stringResource(R.string.home_selection_cancel),
@@ -127,7 +177,7 @@ fun HomeScreen(
                     },
                     actions = {
                         IconButton(
-                            onClick = { viewModel.requestDeleteSelected() },
+                            onClick = onRequestDeleteSelected,
                             enabled = uiState.selectedIds.isNotEmpty() && !uiState.isDeleting,
                         ) {
                             Icon(
@@ -142,13 +192,14 @@ fun HomeScreen(
             } else {
                 TopAppBar(
                     title = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             Text(
                                 text = stringResource(R.string.app_name),
-                                style = MaterialTheme.typography.headlineSmall,
+                                style = MaterialTheme.typography.titleLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                             Surface(
                                 shape = MaterialTheme.shapes.small,
@@ -158,6 +209,7 @@ fun HomeScreen(
                                     text = stringResource(R.string.app_beta_badge),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    maxLines = 1,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                 )
                             }
@@ -167,7 +219,7 @@ fun HomeScreen(
                         AideMemoireThemeActions(
                             onAideMemoire = onAideMemoire,
                             isDark = isDark,
-                            onToggleTheme = { themeViewModel.toggleTheme(isDark) },
+                            onToggleTheme = onToggleTheme,
                         )
                     },
                     colors = topBarColors,
@@ -180,13 +232,18 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+            contentPadding = PaddingValues(
+                start = 20.dp,
+                end = 20.dp,
+                top = 16.dp,
+                bottom = navigationBarBottomPadding(extra = 16.dp),
+            ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (!uiState.isSelectionMode) {
                 item {
                     Button(
-                        onClick = { viewModel.createIntervention(onNewIntervention) },
+                        onClick = onNewIntervention,
                         enabled = !uiState.isCreating,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -253,9 +310,9 @@ fun HomeScreen(
                         selectedIds = uiState.selectedIds,
                         onOpen = onOpenIntervention,
                         onOpenRecap = onOpenRecap,
-                        onLongPress = viewModel::onInterventionLongPress,
-                        onToggleSelection = viewModel::toggleSelection,
-                        onDeleteClick = viewModel::requestDeleteSingle,
+                        onLongPress = onInterventionLongPress,
+                        onToggleSelection = onToggleSelection,
+                        onDeleteClick = onRequestDeleteSingle,
                     )
                 }
             }
@@ -283,5 +340,114 @@ fun HomeScreen(
                 }
             }
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Previews — test responsive (tailles/ratios) sans émulateur.
+// ---------------------------------------------------------------------------
+
+private fun sampleInterventions(): List<Intervention> = listOf(
+    Intervention(
+        id = 1,
+        startedAtEpochMillis = 1_716_200_000_000,
+        status = InterventionStatus.DRAFT,
+        schemaVersion = "v2",
+        nom = "DURAND",
+        prenom = "Camille",
+        age = 34,
+    ),
+    Intervention(
+        id = 2,
+        startedAtEpochMillis = 1_716_100_000_000,
+        status = InterventionStatus.CLOSED,
+        schemaVersion = "v2",
+        nom = "MARTIN",
+        prenom = "Jean-Baptiste",
+        age = 72,
+    ),
+    Intervention(
+        id = 3,
+        startedAtEpochMillis = 1_716_000_000_000,
+        status = InterventionStatus.DRAFT,
+        schemaVersion = "v2",
+    ),
+)
+
+@ResponsivePreviews
+@Composable
+private fun HomeScreenResponsivePreview() {
+    NotesDuSecouristeTheme {
+        HomeScreenContent(
+            uiState = HomeUiState(),
+            interventions = sampleInterventions(),
+            isDark = false,
+            onNewIntervention = {},
+            onAideMemoire = {},
+            onToggleTheme = {},
+            onSettings = {},
+            onOpenIntervention = {},
+            onOpenRecap = {},
+            onInterventionLongPress = {},
+            onToggleSelection = {},
+            onRequestDeleteSingle = {},
+            onExitSelectionMode = {},
+            onRequestDeleteSelected = {},
+            onConfirmDelete = {},
+            onDismissDeleteConfirm = {},
+            onErrorConsumed = {},
+        )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun HomeScreenThemePreview() {
+    NotesDuSecouristeTheme {
+        HomeScreenContent(
+            uiState = HomeUiState(),
+            interventions = sampleInterventions(),
+            isDark = false,
+            onNewIntervention = {},
+            onAideMemoire = {},
+            onToggleTheme = {},
+            onSettings = {},
+            onOpenIntervention = {},
+            onOpenRecap = {},
+            onInterventionLongPress = {},
+            onToggleSelection = {},
+            onRequestDeleteSingle = {},
+            onExitSelectionMode = {},
+            onRequestDeleteSelected = {},
+            onConfirmDelete = {},
+            onDismissDeleteConfirm = {},
+            onErrorConsumed = {},
+        )
+    }
+}
+
+@ResponsivePreviews
+@Composable
+private fun HomeScreenEmptyPreview() {
+    NotesDuSecouristeTheme {
+        HomeScreenContent(
+            uiState = HomeUiState(),
+            interventions = emptyList(),
+            isDark = false,
+            onNewIntervention = {},
+            onAideMemoire = {},
+            onToggleTheme = {},
+            onSettings = {},
+            onOpenIntervention = {},
+            onOpenRecap = {},
+            onInterventionLongPress = {},
+            onToggleSelection = {},
+            onRequestDeleteSingle = {},
+            onExitSelectionMode = {},
+            onRequestDeleteSelected = {},
+            onConfirmDelete = {},
+            onDismissDeleteConfirm = {},
+            onErrorConsumed = {},
+        )
     }
 }

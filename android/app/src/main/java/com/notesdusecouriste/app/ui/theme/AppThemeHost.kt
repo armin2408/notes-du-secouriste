@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.notesdusecouriste.core.ui.systembars.EdgeToEdgeRoot
 import com.notesdusecouriste.core.ui.theme.NotesDuSecouristeTheme
 
 /** Single Activity-scoped instance — must match [AppThemeHost] (not nav-route scoped). */
@@ -30,6 +31,8 @@ fun AppThemeHost(
 
     NotesDuSecouristeTheme(darkTheme = isDark) {
         SystemBarsAppearance(isDarkTheme = isDark)
-        content()
+        EdgeToEdgeRoot {
+            content()
+        }
     }
 }

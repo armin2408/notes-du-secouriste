@@ -26,36 +26,65 @@ Textes à copier dans [Google Play Console](https://play.google.com/console). Ad
 Notes du Secouriste
 ```
 
-## Description courte (80 caractères max)
+## Brève description (80 caractères max)
+
+**Recommandée (73 car.)** — à coller dans « Brève description » :
 
 ```
 Notes de terrain hors ligne pour secouristes PSE — victime, mesures, récap.
 ```
 
-## Description complète
+**Alternative (79 car.)** :
 
 ```
-Notes du Secouriste remplace le bloc-notes papier du secouriste sur le terrain : saisie structurée, sauvegarde automatique, tout fonctionne sans réseau.
+Notes PSE hors ligne : victime, mesures, Glasgow, SAMPLE, récap. Version bêta.
+```
 
-POUR QUI ?
-Secouristes PSE1/PSE2 en intervention (événementiel, association, binôme) qui veulent noter vite et préparer une transmission orale.
+## Description complète (4000 caractères max)
 
-FONCTIONNALITÉS (bêta)
-• Interventions multiples — brouillon ou clôturée
-• Victime — identité, âge, coordonnées
-• Mesures — respiration, circulation, conscience (Glasgow), suspicion d’AVC, relevés horodatés
+**~1 950 car.** — marge large sous la limite :
+
+```
+Notes du Secouriste aide le secouriste à structurer ses observations sur le terrain, comme un bloc-notes numérique pensé pour l’intervention : saisie rapide, sauvegarde automatique, aucune connexion requise.
+
+━━━ POUR QUI ? ━━━
+Secouristes PSE1 et PSE2 (événementiel, association, binôme, garde) qui souhaitent noter pendant l’action et préparer une transmission orale claire vers le chef d’équipe ou la régulation.
+
+━━━ FONCTIONNALITÉS (version bêta) ━━━
+• Interventions multiples — statut brouillon ou clôturée
+• Victime — identité, date de naissance, âge, coordonnées
+• Mesures structurées — respiration, circulation, conscience (score de Glasgow), suspicion d’AVC
+• Relevés horodatés — plusieurs onglets par intervention
 • Questionnaires SAMPLE et OPQRST
-• Récap de transmission en lecture seule
-• Aide-mémoire intégrée (Markdown, onglets personnalisables)
-• Thème clair / sombre
+• Récap de transmission — lecture seule, fil de dictée
+• Aide-mémoire intégrée — contenus Markdown, onglets personnalisables
+• Thème clair ou sombre
 
-HORS LIGNE
-Aucun compte, aucun cloud : vos données restent sur votre téléphone.
+━━━ 100 % HORS LIGNE ━━━
+Pas de compte, pas de cloud éditeur : les données saisies restent sur votre téléphone. Fonctionne en zone blanche ou sans réseau.
 
-IMPORTANT
-Cette application ne produit pas de bilan médical officiel. Elle aide à structurer des notes secouriste ; la transmission et les gestes relèvent de votre formation et des protocoles en vigueur.
+━━━ AVERTISSEMENT IMPORTANT ━━━
+Notes du Secouriste est un outil d’aide à la prise de notes de terrain. Elle ne remplace en aucun cas les documents officiels de bilan ni les applications ou outils numériques utilisés ou imposés par les institutions, services de secours et associations de secourisme (protection civile, Croix-Rouge, structures événementielles, etc.).
 
-Version bêta : retours bienvenus pour améliorer l’ergonomie terrain.
+L’usage de cette application ne dispense pas du respect des protocoles, chartes et obligations de votre organisation. La transmission, les gestes et les décisions relèvent de votre formation et du cadre légal de votre mission.
+
+━━━ VERSION BÊTA ━━━
+Application en test : l’ergonomie et les fonctionnalités évoluent. Vos retours sont les bienvenus pour améliorer l’outil sur le terrain.
+
+Politique de confidentialité : https://armin2408.github.io/notes-du-secouriste/
+```
+
+## Notes de version (0.2.1 bêta)
+
+```
+Version bêta 0.2.1 — test fermé.
+
+• Aide-mémoire : éditeur enrichi (gras, italique, listes, liens), sauvegarde automatique, recherche corrigée
+• Interface : barre de navigation transparente avec flou (navigation 3 boutons)
+• Notes d'intervention : bouton Récap en fin de formulaire (plus de barre fixe en bas)
+• Corrections et améliorations diverses
+
+Merci de signaler les bugs via [email ou formulaire à compléter].
 ```
 
 ## Notes de version (exemple 0.1.0 bêta)

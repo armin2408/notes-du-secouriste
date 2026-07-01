@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -40,7 +44,6 @@ import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Visibility
@@ -73,7 +76,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.input.pointer.pointerInput
@@ -83,28 +88,31 @@ import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -116,294 +124,6 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.text.Normalizer
 import java.util.UUID
-
-private data class MatchPosition(
-    val lineIndex: Int,
-    val start: Int,
-    val end: Int,
-)
-
-private data class NormalizedTextMap(
-    val normalized: String,
-    val indexMap: IntArray,
-) {
-    fun mapToOriginal(normalizedIndex: Int): Int? =
-        if (normalizedIndex < 0 || normalizedIndex >= indexMap.size) null else indexMap[normalizedIndex]
-}
-
-private fun normalizeSearchTextWithMap(input: String): NormalizedTextMap {
-    val sb = StringBuilder(input.length)
-    val map = ArrayList<Int>(input.length)
-
-    input.forEachIndexed { originalIndex, ch ->
-        val base = Normalizer.normalize(ch.toString(), Normalizer.Form.NFD)
-            .replace(Regex("\\p{Mn}+"), "")
-            .lowercase()
-        base.forEach { outCh ->
-            sb.append(outCh)
-            map.add(originalIndex)
-        }
-    }
-
-    return NormalizedTextMap(
-        normalized = sb.toString(),
-        indexMap = map.toIntArray(),
-    )
-}
-
-private fun findAllOccurrences(haystack: String, needle: String): List<Int> {
-    if (needle.isBlank()) return emptyList()
-    val out = ArrayList<Int>()
-    var idx = haystack.indexOf(needle, startIndex = 0)
-    while (idx >= 0) {
-        out.add(idx)
-        idx = haystack.indexOf(needle, startIndex = idx + needle.length)
-    }
-    return out
-}
-
-private data class AideMemoireSpan(
-    val start: Int,
-    val end: Int,
-    val style: SpanStyle,
-)
-
-/**
- * WYSIWYG inline minimaliste pour l'éditeur Aide‑mémoire.
- * On conserve le texte markdown "source", mais on masque les marqueurs et on applique un style.
- *
- * Support (volontairement limité pour rester stable) :
- * - Titres: `# ` / `## ` / `### ` au début d'une ligne (marqueurs masqués, texte en semi-gras)
- * - Liste: `- ` au début d'une ligne (affiché `• `)
- * - Gras: `**texte**` (marqueurs masqués)
- * - Italique: `_texte_` (heuristique simple, marqueurs masqués)
- */
-private class AideMemoireWysiwygMarkdownTransformation(
-    private val h1Style: SpanStyle,
-    private val h2Style: SpanStyle,
-    private val h3Style: SpanStyle,
-    private val bulletMarkerStyle: SpanStyle,
-) : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val src = text.text
-        val out = StringBuilder(src.length)
-
-        val origToTrans = IntArray(src.length + 1)
-        val transToOrig = ArrayList<Int>(src.length + 1)
-        transToOrig.add(0)
-
-        fun appendChar(ch: Char, originIndex: Int) {
-            out.append(ch)
-            transToOrig.add(originIndex + 1)
-        }
-
-        fun setMapForOrigin(originPos: Int, mappedTransPos: Int) {
-            if (originPos in 0..src.length) origToTrans[originPos] = mappedTransPos
-        }
-
-        val spans = ArrayList<AideMemoireSpan>()
-
-        var i = 0
-        var transIndex = 0
-
-        while (i < src.length) {
-            setMapForOrigin(i, transIndex)
-
-            val lineStart = (i == 0 || src[i - 1] == '\n')
-            if (lineStart) {
-                val h3 = src.startsWith("### ", i)
-                val h2 = src.startsWith("## ", i)
-                val h1 = src.startsWith("# ", i)
-                if (h3 || h2 || h1) {
-                    val markerLen = if (h3) 4 else if (h2) 3 else 2
-                    for (m in 0 until markerLen) setMapForOrigin(i + m, transIndex)
-                    i += markerLen
-
-                    val spanStart = transIndex
-                    while (i < src.length && src[i] != '\n') {
-                        setMapForOrigin(i, transIndex)
-                        appendChar(src[i], i)
-                        i++
-                        transIndex++
-                    }
-                    val style = if (h1) h1Style else if (h2) h2Style else h3Style
-                    spans.add(AideMemoireSpan(spanStart, transIndex, style))
-                    continue
-                }
-
-                if (src.startsWith("- ", i)) {
-                    setMapForOrigin(i, transIndex)
-                    setMapForOrigin(i + 1, transIndex)
-                    val bulletStart = transIndex
-                    appendChar('•', i)
-                    transIndex++
-                    appendChar(' ', i + 1)
-                    transIndex++
-                    spans.add(AideMemoireSpan(bulletStart, bulletStart + 1, bulletMarkerStyle))
-                    i += 2
-                    continue
-                }
-            }
-
-            if (src.startsWith("**", i)) {
-                val close = src.indexOf("**", startIndex = i + 2)
-                if (close > i + 2) {
-                    setMapForOrigin(i, transIndex)
-                    setMapForOrigin(i + 1, transIndex)
-                    i += 2
-                    val spanStart = transIndex
-                    while (i < close) {
-                        setMapForOrigin(i, transIndex)
-                        appendChar(src[i], i)
-                        i++
-                        transIndex++
-                    }
-                    spans.add(AideMemoireSpan(spanStart, transIndex, SpanStyle(fontWeight = FontWeight.Bold)))
-                    setMapForOrigin(close, transIndex)
-                    setMapForOrigin(close + 1, transIndex)
-                    i = close + 2
-                    continue
-                }
-            }
-
-            if (src[i] == '_') {
-                val close = src.indexOf('_', startIndex = i + 1)
-                if (close > i + 1) {
-                    val prevOk = (i == 0) || src[i - 1].isWhitespace() || src[i - 1] == '\n'
-                    val nextOk = (close + 1 >= src.length) || src[close + 1].isWhitespace() || src[close + 1] == '\n'
-                    if (prevOk && nextOk) {
-                        setMapForOrigin(i, transIndex)
-                        i += 1
-                        val spanStart = transIndex
-                        while (i < close) {
-                            setMapForOrigin(i, transIndex)
-                            appendChar(src[i], i)
-                            i++
-                            transIndex++
-                        }
-                        spans.add(AideMemoireSpan(spanStart, transIndex, SpanStyle(fontStyle = FontStyle.Italic)))
-                        setMapForOrigin(close, transIndex)
-                        i = close + 1
-                        continue
-                    }
-                }
-            }
-
-            appendChar(src[i], i)
-            i++
-            transIndex++
-        }
-
-        setMapForOrigin(src.length, transIndex)
-
-        val transformed = buildAnnotatedString {
-            append(out.toString())
-            spans.forEach { s ->
-                val safeStart = s.start.coerceIn(0, length)
-                val safeEnd = s.end.coerceIn(0, length)
-                if (safeEnd > safeStart) addStyle(s.style, safeStart, safeEnd)
-            }
-        }
-
-        val offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int =
-                origToTrans[offset.coerceIn(0, origToTrans.lastIndex)].coerceIn(0, transformed.length)
-
-            override fun transformedToOriginal(offset: Int): Int {
-                val safe = offset.coerceIn(0, transformed.length)
-                val mapped = transToOrig.getOrNull(safe) ?: (src.length + 1)
-                return (mapped - 1).coerceIn(0, src.length)
-            }
-        }
-
-        return TransformedText(transformed, offsetMapping)
-    }
-}
-
-@Composable
-private fun AideMemoireEditorToolbar(
-    onH1: () -> Unit,
-    onH2: () -> Unit,
-    onBullets: () -> Unit,
-    onBold: () -> Unit,
-    onItalic: () -> Unit,
-    onLink: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        val scroll = rememberScrollState()
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(scroll)
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextButton(onClick = onH1) { Text("H1") }
-            TextButton(onClick = onH2) { Text("H2") }
-            TextButton(onClick = onBullets) { Text("•") }
-            TextButton(onClick = onBold) { Text("B") }
-            TextButton(onClick = onItalic) { Text("I") }
-            TextButton(onClick = onLink) { Text("Lien") }
-        }
-    }
-}
-
-private fun wrapSelection(value: TextFieldValue, prefix: String, suffix: String): TextFieldValue {
-    val selStart = value.selection.start.coerceIn(0, value.text.length)
-    val selEnd = value.selection.end.coerceIn(0, value.text.length)
-    val before = value.text.substring(0, selStart)
-    val middle = value.text.substring(selStart, selEnd)
-    val after = value.text.substring(selEnd)
-    val nextText = before + prefix + middle + suffix + after
-    val cursor = (selEnd + prefix.length + suffix.length).coerceIn(0, nextText.length)
-    return value.copy(
-        text = nextText,
-        selection = TextRange(cursor, cursor),
-    )
-}
-
-private fun insertLink(value: TextFieldValue): TextFieldValue {
-    val selStart = value.selection.start.coerceIn(0, value.text.length)
-    val selEnd = value.selection.end.coerceIn(0, value.text.length)
-    val selected = value.text.substring(selStart, selEnd).ifBlank { "texte" }
-    val insertion = "[$selected](https://)"
-    val before = value.text.substring(0, selStart)
-    val after = value.text.substring(selEnd)
-    val nextText = before + insertion + after
-    val cursor = (before.length + insertion.length - 1).coerceIn(0, nextText.length) // placer avant ')'
-    return value.copy(text = nextText, selection = TextRange(cursor, cursor))
-}
-
-private fun insertPrefixAtLineStart(value: TextFieldValue, prefix: String): TextFieldValue {
-    val cursor = value.selection.start.coerceIn(0, value.text.length)
-    val lineStart = value.text.lastIndexOf('\n', startIndex = (cursor - 1).coerceAtLeast(0)).let { if (it < 0) 0 else it + 1 }
-    val before = value.text.substring(0, lineStart)
-    val after = value.text.substring(lineStart)
-    val nextText = before + prefix + after
-    val nextCursor = (cursor + prefix.length).coerceIn(0, nextText.length)
-    return value.copy(text = nextText, selection = TextRange(nextCursor, nextCursor))
-}
-
-private fun prefixSelectedLines(value: TextFieldValue, prefix: String): TextFieldValue {
-    val text = value.text
-    val start = value.selection.min.coerceIn(0, text.length)
-    val end = value.selection.max.coerceIn(0, text.length)
-
-    val selStartLine = text.lastIndexOf('\n', startIndex = (start - 1).coerceAtLeast(0)).let { if (it < 0) 0 else it + 1 }
-    val selEndLineEnd = text.indexOf('\n', startIndex = end).let { if (it < 0) text.length else it }
-    val block = text.substring(selStartLine, selEndLineEnd)
-    val lines = block.split('\n')
-    val updatedBlock = lines.joinToString("\n") { line ->
-        if (line.isBlank()) line else prefix + line
-    }
-    val nextText = text.substring(0, selStartLine) + updatedBlock + text.substring(selEndLineEnd)
-    val delta = updatedBlock.length - block.length
-    val nextSelectionEnd = (value.selection.end + delta).coerceIn(0, nextText.length)
-    return value.copy(text = nextText, selection = TextRange(nextSelectionEnd, nextSelectionEnd))
-}
 
 @Composable
 private fun AideMemoireSearchBar(
@@ -495,10 +215,20 @@ fun AideMemoirePlaceholderScreen(
     var searchScrollNonce by remember { mutableIntStateOf(0) } // re-scroll même résultat (ex. 1 seul hit)
     val focusManager = LocalFocusManager.current
     var editMode by remember { mutableStateOf(false) }
-    var editBuffer by remember { mutableStateOf("") }
     var editOriginal by remember { mutableStateOf("") }
-    var editValue by remember { mutableStateOf(TextFieldValue("")) }
-    var confirmDiscardEditsOpen by remember { mutableStateOf(false) }
+    var editSessionKey by remember { mutableIntStateOf(0) }
+    val richTextState = rememberRichTextState()
+    var editorContentLoaded by remember { mutableStateOf(false) }
+    var isSavingMarkdown by remember { mutableStateOf(false) }
+    var lastSavedAtEpochMillis by remember { mutableStateOf<Long?>(null) }
+    var isEditingTabTitle by remember { mutableStateOf(false) }
+    var tabTitleDraft by remember { mutableStateOf("") }
+    val editSaveTracker = remember(editSessionKey) {
+        object {
+            var lastPersistedMarkdown: String = ""
+            var lastPersistedTitle: String = ""
+        }
+    }
     var pdfNoViewerDialogOpen by remember { mutableStateOf(false) }
 
     val selectedTab = visibleTabs.getOrNull(selectedTabIndex)
@@ -513,11 +243,66 @@ fun AideMemoirePlaceholderScreen(
         }
     }
 
+    LaunchedEffect(editMode, editSessionKey, selectedTab?.id) {
+        editorContentLoaded = false
+        isEditingTabTitle = false
+        if (editMode) {
+            richTextState.setMarkdown(editOriginal)
+            editSaveTracker.lastPersistedMarkdown = editOriginal
+            tabTitleDraft = selectedTab?.title ?: ""
+            editSaveTracker.lastPersistedTitle = tabTitleDraft
+            lastSavedAtEpochMillis = null
+            editorContentLoaded = true
+        }
+    }
+
+    val editingTabId = selectedTab?.takeIf { isSelectedCustomMarkdown }?.id
+    val editingTabIdState = rememberUpdatedState(editingTabId)
+
+    LaunchedEffect(editMode, editorContentLoaded, editingTabId) {
+        if (!editMode || !editorContentLoaded || editingTabId == null) return@LaunchedEffect
+
+        snapshotFlow { richTextState.annotatedString.text }
+            .debounce(400)
+            .collectLatest {
+                val tabId = editingTabIdState.value ?: return@collectLatest
+                val markdown = richTextState.toMarkdown()
+                if (markdown == editSaveTracker.lastPersistedMarkdown) return@collectLatest
+
+                isSavingMarkdown = true
+                runCatching {
+                    repository.updateMarkdown(tabId, markdown)
+                }.onSuccess {
+                    editSaveTracker.lastPersistedMarkdown = markdown
+                    editOriginal = markdown
+                    lastSavedAtEpochMillis = System.currentTimeMillis()
+                }
+                isSavingMarkdown = false
+            }
+    }
+
+    LaunchedEffect(editMode, editingTabId) {
+        if (!editMode || editingTabId == null) return@LaunchedEffect
+
+        snapshotFlow { tabTitleDraft }
+            .debounce(400)
+            .collectLatest { draft ->
+                val tabId = editingTabIdState.value ?: return@collectLatest
+                val safeTitle = normalizeAideMemoireTabTitle(draft)
+                if (safeTitle == editSaveTracker.lastPersistedTitle) return@collectLatest
+
+                runCatching {
+                    repository.updateTitle(tabId, safeTitle)
+                }.onSuccess {
+                    editSaveTracker.lastPersistedTitle = safeTitle
+                }
+            }
+    }
+
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri == null) return@rememberLauncherForActivityResult
         val token = runCatching { copyImageIntoApp(context, uri) }.getOrNull() ?: return@rememberLauncherForActivityResult
-        val insertion = "\n![](appimg://$token)\n"
-        editBuffer += insertion
+        richTextState.insertMarkdownAfterSelection("\n![](appimg://$token)\n")
     }
 
     if (manageScreenOpen) {
@@ -553,20 +338,83 @@ fun AideMemoirePlaceholderScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Aide mémoire") },
+                title = {
+                    if (editMode) {
+                        Column {
+                            AideMemoireEditableTabTitle(
+                                title = selectedTab?.title ?: "Aide mémoire",
+                                draft = tabTitleDraft,
+                                onDraftChange = { tabTitleDraft = it },
+                                isEditing = isEditingTabTitle,
+                                onStartEditing = { isEditingTabTitle = true },
+                                onFinishEditing = {
+                                    isEditingTabTitle = false
+                                    val tabId = editingTabId ?: return@AideMemoireEditableTabTitle
+                                    scope.launch {
+                                        val safeTitle = normalizeAideMemoireTabTitle(tabTitleDraft)
+                                        if (safeTitle != editSaveTracker.lastPersistedTitle) {
+                                            runCatching {
+                                                repository.updateTitle(tabId, safeTitle)
+                                            }.onSuccess {
+                                                editSaveTracker.lastPersistedTitle = safeTitle
+                                            }
+                                        }
+                                        tabTitleDraft = safeTitle
+                                    }
+                                },
+                            )
+                            aideMemoireSaveStatusText(isSavingMarkdown, lastSavedAtEpochMillis)?.let { status ->
+                                Text(
+                                    text = status,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    } else {
+                        Text("Aide mémoire")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
                 ),
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = {
+                            if (editMode) {
+                                val tabId = editingTabId ?: return@IconButton
+                                scope.launch {
+                                    val markdown = richTextState.toMarkdown()
+                                    if (markdown != editSaveTracker.lastPersistedMarkdown) {
+                                        isSavingMarkdown = true
+                                        runCatching {
+                                            repository.updateMarkdown(tabId, markdown)
+                                        }.onSuccess {
+                                            editSaveTracker.lastPersistedMarkdown = markdown
+                                            editOriginal = markdown
+                                            lastSavedAtEpochMillis = System.currentTimeMillis()
+                                        }
+                                        isSavingMarkdown = false
+                                    }
+                                    editMode = false
+                                }
+                            } else {
+                                onBack()
+                            }
+                        },
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
                     }
                 },
                 actions = {
                     actions()
 
-                    if (selectedTab != null && selectedTab.type == AideMemoireTabType.Markdown) {
+                    if (
+                        selectedTab != null &&
+                        selectedTab.type == AideMemoireTabType.Markdown &&
+                        !editMode
+                    ) {
                         IconButton(onClick = { searchMode = true }) {
                             Icon(Icons.Outlined.Search, contentDescription = "Rechercher")
                         }
@@ -578,11 +426,7 @@ fun AideMemoirePlaceholderScreen(
                                 onClick = {
                                     editMode = true
                                     editOriginal = selectedTab.markdown ?: ""
-                                    editBuffer = editOriginal
-                                    editValue = TextFieldValue(
-                                        text = editOriginal,
-                                        selection = TextRange(editOriginal.length),
-                                    )
+                                    editSessionKey++
                                 },
                             ) {
                                 Icon(Icons.Outlined.Edit, contentDescription = "Modifier")
@@ -590,19 +434,25 @@ fun AideMemoirePlaceholderScreen(
                         } else {
                             IconButton(
                                 onClick = {
-                                    if (editBuffer != editOriginal) confirmDiscardEditsOpen = true else editMode = false
+                                    val tabId = selectedTab.id
+                                    scope.launch {
+                                        val markdown = richTextState.toMarkdown()
+                                        if (markdown != editSaveTracker.lastPersistedMarkdown) {
+                                            isSavingMarkdown = true
+                                            runCatching {
+                                                repository.updateMarkdown(tabId, markdown)
+                                            }.onSuccess {
+                                                editSaveTracker.lastPersistedMarkdown = markdown
+                                                editOriginal = markdown
+                                                lastSavedAtEpochMillis = System.currentTimeMillis()
+                                            }
+                                            isSavingMarkdown = false
+                                        }
+                                        editMode = false
+                                    }
                                 },
                             ) {
-                                Icon(Icons.Outlined.Close, contentDescription = "Annuler")
-                            }
-                            IconButton(
-                                onClick = {
-                                    val id = selectedTab.id
-                                    scope.launch { repository.updateMarkdown(id, editBuffer) }
-                                    editMode = false
-                                },
-                            ) {
-                                Icon(Icons.Outlined.Save, contentDescription = "Enregistrer")
+                                Icon(Icons.Outlined.Close, contentDescription = "Terminer l'édition")
                             }
                             IconButton(
                                 onClick = { imagePicker.launch("image/*") },
@@ -700,32 +550,7 @@ fun AideMemoirePlaceholderScreen(
                 }
 
                 if (editMode) {
-                    AideMemoireEditorToolbar(
-                        onH1 = {
-                            editValue = prefixSelectedLines(editValue, "# ")
-                            editBuffer = editValue.text
-                        },
-                        onH2 = {
-                            editValue = prefixSelectedLines(editValue, "## ")
-                            editBuffer = editValue.text
-                        },
-                        onBullets = {
-                            editValue = prefixSelectedLines(editValue, "- ")
-                            editBuffer = editValue.text
-                        },
-                        onBold = {
-                            editValue = wrapSelection(editValue, "**", "**")
-                            editBuffer = editValue.text
-                        },
-                        onItalic = {
-                            editValue = wrapSelection(editValue, "_", "_")
-                            editBuffer = editValue.text
-                        },
-                        onLink = {
-                            editValue = insertLink(editValue)
-                            editBuffer = editValue.text
-                        },
-                    )
+                    AideMemoireRichEditorToolbar(richTextState = richTextState)
                 } else {
                     ScrollableTabRow(
                         selectedTabIndex = selectedTabIndex,
@@ -775,13 +600,7 @@ fun AideMemoirePlaceholderScreen(
                                 )
                             } else {
                                 if (editMode) {
-                                    AideMemoireMarkdownEditor(
-                                        value = editValue,
-                                        onValueChange = {
-                                            editValue = it
-                                            editBuffer = it.text
-                                        },
-                                    )
+                                    AideMemoireRichTextEditor(richTextState = richTextState)
                                 } else {
                                     AideMemoireMarkdownCustomTab(
                                         markdown = tab.markdown ?: "",
@@ -823,6 +642,71 @@ fun AideMemoirePlaceholderScreen(
     // Recherche : barre dédiée entre TopAppBar et onglets (voir AideMemoireSearchBar).
 }
 
+private fun aideMemoireSaveStatusText(isSaving: Boolean, lastSavedAtEpochMillis: Long?): String? = when {
+    isSaving -> "🔁 Enregistrement…"
+    lastSavedAtEpochMillis != null -> "✅ Enregistré"
+    else -> null
+}
+
+private fun normalizeAideMemoireTabTitle(raw: String): String =
+    raw.trim().ifBlank { "Onglet sans titre" }
+
+@Composable
+private fun AideMemoireEditableTabTitle(
+    title: String,
+    draft: String,
+    onDraftChange: (String) -> Unit,
+    isEditing: Boolean,
+    onStartEditing: () -> Unit,
+    onFinishEditing: () -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var hadFocus by remember(isEditing) { mutableStateOf(false) }
+
+    LaunchedEffect(isEditing) {
+        if (isEditing) {
+            focusRequester.requestFocus()
+        } else {
+            hadFocus = false
+        }
+    }
+
+    if (isEditing) {
+        BasicTextField(
+            value = draft,
+            onValueChange = onDraftChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester)
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                        hadFocus = true
+                    } else if (hadFocus) {
+                        onFinishEditing()
+                    }
+                },
+            textStyle = MaterialTheme.typography.titleLarge.copy(
+                color = MaterialTheme.colorScheme.onSurface,
+            ),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide()
+                    onFinishEditing()
+                },
+            ),
+        )
+    } else {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.clickable(onClick = onStartEditing),
+        )
+    }
+}
+
 private sealed interface AideMemoireTab {
     val title: String
 
@@ -845,12 +729,9 @@ private fun AideMemoireMarkdownCustomTab(
     searchScrollNonce: Int = 0,
     onMatchCountChanged: (Int) -> Unit = {},
 ) {
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
-    AideMemoireMarkdownCommon(
-        context = context,
-        uriHandler = uriHandler,
-        raw = markdown,
+    val raw = remember(markdown) { markdown.replace("\r\n", "\n") }
+    AideMemoireRichTextViewer(
+        markdown = raw,
         emptyText = "Onglet vide.",
         searchQuery = searchQuery,
         requestedMatchIndex = requestedMatchIndex,
@@ -868,12 +749,9 @@ private fun AideMemoireMarkdownTab(
     onMatchCountChanged: (Int) -> Unit = {},
 ) {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
-    val raw = remember(assetPath) { readAssetText(context, assetPath) }
-    AideMemoireMarkdownCommon(
-        context = context,
-        uriHandler = uriHandler,
-        raw = raw,
+    val raw = remember(assetPath) { readAssetText(context, assetPath).replace("\r\n", "\n") }
+    AideMemoireRichTextViewer(
+        markdown = raw,
         emptyText = "Aucun contenu.",
         searchQuery = searchQuery,
         requestedMatchIndex = requestedMatchIndex,
@@ -882,230 +760,16 @@ private fun AideMemoireMarkdownTab(
     )
 }
 
-@Composable
-private fun AideMemoireMarkdownCommon(
-    context: Context,
-    uriHandler: androidx.compose.ui.platform.UriHandler,
-    raw: String,
-    emptyText: String,
-    searchQuery: String?,
-    requestedMatchIndex: Int?,
-    searchScrollNonce: Int,
-    onMatchCountChanged: (Int) -> Unit,
-) {
-    val lines = remember(raw) { raw.lines() }
-    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val scope = rememberCoroutineScope()
-    val density = LocalDensity.current
-
-    val normalizedQuery = remember(searchQuery) { searchQuery?.trim().orEmpty() }
-    val matchPositions = remember(lines, normalizedQuery) {
-        if (normalizedQuery.isBlank()) emptyList()
-        else {
-            val q = normalizeSearchText(normalizedQuery)
-            lines.flatMapIndexed { lineIndex, line ->
-                val normalized = normalizeSearchTextWithMap(line)
-                findAllOccurrences(normalized.normalized, q).mapNotNull { startIdx ->
-                    val endIdx = startIdx + q.length
-                    val startOriginal = normalized.mapToOriginal(startIdx) ?: return@mapNotNull null
-                    val endOriginal = normalized.mapToOriginal(endIdx - 1)?.plus(1) ?: return@mapNotNull null
-                    MatchPosition(lineIndex = lineIndex, start = startOriginal, end = endOriginal)
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(matchPositions.size) {
-        onMatchCountChanged(matchPositions.size)
-    }
-
-    val clampedRequested = remember(requestedMatchIndex, matchPositions.size) {
-        requestedMatchIndex?.coerceIn(0, (matchPositions.size - 1).coerceAtLeast(0))
-    }
-
-    LaunchedEffect(clampedRequested, searchScrollNonce) {
-        val idx = clampedRequested ?: return@LaunchedEffect
-        val mp = matchPositions.getOrNull(idx) ?: return@LaunchedEffect
-        listState.animateScrollToItem(mp.lineIndex)
-        delay(80)
-        // Après scroll, vérifier que la ligne n'est pas masquée en bas du viewport.
-        val layout = listState.layoutInfo
-        val item = layout.visibleItemsInfo.firstOrNull { it.index == mp.lineIndex }
-        if (item != null) {
-            val bottom = item.offset + item.size
-            val safeBottom = layout.viewportEndOffset - with(density) { 24.dp.roundToPx() }
-            if (bottom > safeBottom) {
-                listState.scrollBy((bottom - safeBottom).toFloat())
-            }
-        }
-    }
-
-    LazyColumn(
-        state = listState,
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
-    ) {
-        if (raw.isBlank()) {
-            item {
-                Text(
-                    text = emptyText,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            return@LazyColumn
-        }
-
-        if (normalizedQuery.isNotBlank()) {
-            item {
-                if (matchPositions.isEmpty()) {
-                    Text(
-                        text = "Aucun résultat.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    Text(
-                        text = "${matchPositions.size} résultat(s).",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-
-        items(lines.size) { idx ->
-            val trimmed = lines[idx].trim()
-            if (trimmed.isEmpty()) return@items
-
-            // Image locale: ![](appimg://token)
-            val imageToken = parseMarkdownImageToken(trimmed)
-            if (imageToken != null) {
-                AideMemoireLocalImage(token = imageToken)
-                return@items
-            }
-
-            val lineHighlights = matchPositions.filter { it.lineIndex == idx }.map { it.start until it.end }
-
-            when {
-                trimmed.startsWith("### ") -> MarkdownLine(
-                    text = trimmed.removePrefix("### "),
-                    style = aideMemoireMarkdownH3TextStyle(),
-                    highlights = lineHighlights,
-                    modifier = Modifier.padding(top = 6.dp),
-                )
-                trimmed.startsWith("## ") -> MarkdownLine(
-                    text = trimmed.removePrefix("## "),
-                    style = MaterialTheme.typography.titleLarge,
-                    highlights = lineHighlights,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                trimmed.startsWith("# ") -> MarkdownLine(
-                    text = trimmed.removePrefix("# "),
-                    style = MaterialTheme.typography.headlineSmall,
-                    highlights = lineHighlights,
-                )
-                trimmed.startsWith("- ") -> {
-                    val body = trimmed.removePrefix("- ")
-                    MarkdownBodyLineWithLinks(
-                        text = "• $body",
-                        onOpenUrl = { openAideMemoireLink(context, uriHandler, it) },
-                        highlights = lineHighlights,
-                        bulletCharStyle = SpanStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                        ),
-                    )
-                }
-                else -> MarkdownBodyLineWithLinks(
-                    text = trimmed,
-                    onOpenUrl = { openAideMemoireLink(context, uriHandler, it) },
-                    highlights = lineHighlights,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AideMemoireLocalImage(token: String) {
-    val context = LocalContext.current
-    val image = remember(token) { loadLocalImageBitmap(context, token) }
-    if (image == null) {
-        Text(
-            text = "Image introuvable.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        return
-    }
-    Image(
-        bitmap = image,
-        contentDescription = "Image",
-        modifier = Modifier
-            .fillMaxWidth(),
-    )
-}
-
-private fun parseMarkdownImageToken(line: String): String? {
-    // Support minimal: ![](appimg://token)
-    val regex = Regex("""!\[[^\]]*]\((appimg://[^)]+)\)""")
-    val match = regex.find(line) ?: return null
-    val uri = match.groupValues.getOrNull(1) ?: return null
-    return uri.removePrefix("appimg://").trim()
-}
-
-private fun loadLocalImageBitmap(context: Context, token: String): ImageBitmap? {
+internal fun loadLocalImageBitmap(context: Context, token: String): ImageBitmap? {
     val file = File(File(context.filesDir, "aide_memoire_images"), token)
     if (!file.exists()) return null
     val bmp = BitmapFactory.decodeFile(file.absolutePath) ?: return null
     return bmp.asImageBitmap()
 }
 
-@Composable
-private fun AideMemoireMarkdownEditor(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
-) {
-    val h1 = MaterialTheme.typography.headlineSmall
-    val h2 = MaterialTheme.typography.titleLarge
-    val h3 = aideMemoireMarkdownH3TextStyle()
-    val bulletMarkerStyle = SpanStyle(
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        color = MaterialTheme.colorScheme.primary,
-    )
-    val transformation = remember(h1, h2, h3, bulletMarkerStyle) {
-        AideMemoireWysiwygMarkdownTransformation(
-            h1Style = SpanStyle(fontSize = h1.fontSize, fontWeight = FontWeight.SemiBold),
-            h2Style = SpanStyle(fontSize = h2.fontSize, fontWeight = FontWeight.SemiBold),
-            h3Style = SpanStyle(fontSize = h3.fontSize, fontWeight = FontWeight.SemiBold),
-            bulletMarkerStyle = bulletMarkerStyle,
-        )
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxSize(),
-            label = { Text("Contenu") },
-            visualTransformation = transformation,
-        )
-    }
-}
-
 // Recherche : barre dédiée entre TopAppBar et onglets.
 
-private fun openAideMemoireLink(context: Context, uriHandler: androidx.compose.ui.platform.UriHandler, url: String) {
+internal fun openAideMemoireLink(context: Context, uriHandler: androidx.compose.ui.platform.UriHandler, url: String) {
     if (url.startsWith("assetpdf://")) {
         val assetPath = url.removePrefix("assetpdf://").trimStart('/')
         openPdfAssetExternally(context, assetPath)
@@ -1132,11 +796,6 @@ private fun openPdfAssetExternally(context: Context, assetPath: String) {
     }
 }
 
-private fun normalizeSearchText(input: String): String {
-    val normalized = Normalizer.normalize(input, Normalizer.Form.NFD)
-    return normalized.replace(Regex("\\p{Mn}+"), "").lowercase()
-}
-
 private fun copyImageIntoApp(context: Context, uri: Uri): String {
     val dir = File(context.filesDir, "aide_memoire_images")
     if (!dir.exists()) dir.mkdirs()
@@ -1147,165 +806,6 @@ private fun copyImageIntoApp(context: Context, uri: Uri): String {
         FileOutputStream(outFile).use { output -> input.copyTo(output) }
     }
     return token
-}
-
-@Composable
-private fun aideMemoireMarkdownH3TextStyle(): androidx.compose.ui.text.TextStyle =
-    MaterialTheme.typography.titleMedium.copy(
-        fontSize = (MaterialTheme.typography.bodyLarge.fontSize.value + 2f).sp,
-    )
-
-@Composable
-private fun aideMemoireMarkdownBodyTextStyle(): androidx.compose.ui.text.TextStyle {
-    val body = MaterialTheme.typography.bodyLarge
-    return body.copy(
-        lineHeight = (body.fontSize.value * 1.25f).sp,
-        color = MaterialTheme.colorScheme.onSurface,
-    )
-}
-
-@Composable
-private fun MarkdownLine(
-    text: String,
-    style: androidx.compose.ui.text.TextStyle,
-    highlights: List<IntRange> = emptyList(),
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        modifier = modifier,
-        text = buildMarkdownInlineAnnotated(text, highlights),
-        style = style.copy(fontWeight = FontWeight.SemiBold),
-        color = MaterialTheme.colorScheme.onSurface,
-    )
-}
-
-private val markdownUrlRegex = Regex("(https?://\\S+)")
-
-private fun buildInlineMarkdownAnnotated(
-    text: String,
-    boldStyle: SpanStyle,
-    italicStyle: SpanStyle,
-    linkStyle: SpanStyle,
-): AnnotatedString {
-    return buildAnnotatedString {
-        var i = 0
-        while (i < text.length) {
-            val urlMatch = markdownUrlRegex.find(text, i)
-            if (urlMatch != null && urlMatch.range.first == i) {
-                val raw = text.substring(urlMatch.range)
-                val url = raw.trimEnd('.', ',', ')', ']')
-                pushStringAnnotation(tag = "URL", annotation = url)
-                withStyle(linkStyle) { append(url) }
-                pop()
-                i = urlMatch.range.last + 1
-                continue
-            }
-
-            if (text.startsWith("**", i)) {
-                val close = text.indexOf("**", startIndex = i + 2)
-                if (close > i + 2) {
-                    withStyle(boldStyle) { append(text.substring(i + 2, close)) }
-                    i = close + 2
-                    continue
-                }
-            }
-
-            if (text[i] == '_') {
-                val close = text.indexOf('_', startIndex = i + 1)
-                if (close > i + 1) {
-                    val prevOk = i == 0 || text[i - 1].isWhitespace() || text[i - 1] == '\n'
-                    val nextOk = close + 1 >= text.length || text[close + 1].isWhitespace() || text[close + 1] == '\n'
-                    if (prevOk && nextOk) {
-                        withStyle(italicStyle) { append(text.substring(i + 1, close)) }
-                        i = close + 1
-                        continue
-                    }
-                }
-            }
-
-            append(text[i])
-            i++
-        }
-    }
-}
-
-@Composable
-private fun buildMarkdownInlineAnnotated(
-    text: String,
-    highlights: List<IntRange>,
-    bulletCharStyle: SpanStyle? = null,
-): AnnotatedString {
-    val boldStyle = SpanStyle(fontWeight = FontWeight.Bold)
-    val italicStyle = SpanStyle(fontStyle = FontStyle.Italic)
-    val linkStyle = SpanStyle(
-        color = MaterialTheme.colorScheme.primary,
-        textDecoration = TextDecoration.Underline,
-        fontWeight = FontWeight.Medium,
-    )
-    val base = buildInlineMarkdownAnnotated(text, boldStyle, italicStyle, linkStyle)
-
-    val withBullet = if (bulletCharStyle != null && text.startsWith("•")) {
-        buildAnnotatedString {
-            append(base.text)
-            base.spanStyles.forEach { addStyle(it.item, it.start, it.end) }
-            base.getStringAnnotations(0, base.text.length).forEach { ann ->
-                addStringAnnotation(tag = ann.tag, annotation = ann.item, start = ann.start, end = ann.end)
-            }
-            addStyle(bulletCharStyle, 0, 1)
-        }
-    } else {
-        base
-    }
-
-    if (highlights.isEmpty()) return withBullet
-
-    val highlightStyle = SpanStyle(
-        background = MaterialTheme.colorScheme.tertiaryContainer,
-        color = MaterialTheme.colorScheme.onTertiaryContainer,
-    )
-    return buildAnnotatedString {
-        append(withBullet.text)
-        withBullet.spanStyles.forEach { addStyle(it.item, it.start, it.end) }
-        withBullet.getStringAnnotations(0, withBullet.text.length).forEach { ann ->
-            addStringAnnotation(tag = ann.tag, annotation = ann.item, start = ann.start, end = ann.end)
-        }
-        highlights.forEach { range ->
-            val start = range.first.coerceIn(0, withBullet.text.length)
-            val end = (range.last + 1).coerceIn(0, withBullet.text.length)
-            if (end > start) addStyle(highlightStyle, start, end)
-        }
-    }
-}
-
-@Composable
-private fun MarkdownBodyLineWithLinks(
-    text: String,
-    onOpenUrl: (String) -> Unit,
-    highlights: List<IntRange> = emptyList(),
-    bulletCharStyle: SpanStyle? = null,
-) {
-    val annotated = buildMarkdownInlineAnnotated(text, highlights, bulletCharStyle)
-    ClickableTextLine(
-        text = annotated,
-        onOpenUrl = onOpenUrl,
-    )
-}
-
-@Composable
-private fun ClickableTextLine(
-    text: AnnotatedString,
-    onOpenUrl: (String) -> Unit,
-) {
-    androidx.compose.foundation.text.ClickableText(
-        text = text,
-        style = aideMemoireMarkdownBodyTextStyle(),
-        onClick = { offset ->
-            val url = text.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                .firstOrNull()
-                ?.item
-            if (!url.isNullOrBlank()) onOpenUrl(url)
-        },
-    )
 }
 
 // PDF viewer interne supprimé: les PDFs s'ouvrent via app externe.
@@ -1453,6 +953,19 @@ private class AideMemoireTabsRepository(
                     type = AideMemoireTabType.Markdown,
                     markdown = markdown,
                 )
+            }
+        }
+    }
+
+    suspend fun updateTitle(id: String, title: String) {
+        val safeTitle = normalizeAideMemoireTabTitle(title)
+        updateTabs { current ->
+            val idx = current.indexOfFirst { it.id == id }
+            if (idx < 0) return@updateTabs current
+            val tab = current[idx]
+            if (tab.isDefault) return@updateTabs current
+            current.toMutableList().apply {
+                this[idx] = tab.copy(title = safeTitle)
             }
         }
     }

@@ -24,8 +24,8 @@ android {
         applicationId = "com.notesdusecouriste.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.1.0-beta"
+        versionCode = 5
+        versionName = "0.2.1-beta"
     }
 
     signingConfigs {
@@ -122,6 +122,6 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
 
+    implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.tooling.preview)
 }
