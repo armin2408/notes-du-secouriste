@@ -45,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.notesdusecouriste.app.R
 import com.notesdusecouriste.app.ui.components.AideMemoireThemeActions
+import com.notesdusecouriste.app.ui.settings.PrivacyGuardrailDialog
 import com.notesdusecouriste.app.ui.theme.AppThemeViewModel
 import com.notesdusecouriste.app.ui.theme.appThemeViewModel
 import com.notesdusecouriste.core.data.model.Intervention
@@ -68,6 +69,8 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val interventions by viewModel.interventions.collectAsStateWithLifecycle()
     val isDark by themeViewModel.effectiveIsDark.collectAsStateWithLifecycle()
+
+    PrivacyGuardrailDialog()
 
     HomeScreenContent(
         uiState = uiState,

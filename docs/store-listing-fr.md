@@ -51,14 +51,14 @@ Notes du Secouriste aide le secouriste à structurer ses observations sur le ter
 Secouristes PSE1 et PSE2 (événementiel, association, binôme, garde) qui souhaitent noter pendant l’action et préparer une transmission orale claire vers le chef d’équipe ou la régulation.
 
 ━━━ FONCTIONNALITÉS (version bêta) ━━━
-• Interventions multiples — statut brouillon ou clôturée
+• Interventions multiples (brouillons)
 • Victime — identité, date de naissance, âge, coordonnées
-• Mesures structurées — respiration, circulation, conscience (score de Glasgow), suspicion d’AVC
+• Mesures structurées — respiration, circulation, conscience (score de Glasgow), suspicion d’AVC, température, glycémie
 • Relevés horodatés — plusieurs onglets par intervention
 • Questionnaires SAMPLE et OPQRST
-• Récap de transmission — lecture seule, fil de dictée
-• Aide-mémoire intégrée — contenus Markdown, onglets personnalisables
-• Thème clair ou sombre
+• Récap de transmission — lecture seule, synthèse type tableau
+• Aide-mémoire intégrée — éditeur enrichi, onglets personnalisables, recherche, images
+• Thème clair ou sombre, interface edge-to-edge
 
 ━━━ 100 % HORS LIGNE ━━━
 Pas de compte, pas de cloud éditeur : les données saisies restent sur votre téléphone. Fonctionne en zone blanche ou sans réseau.

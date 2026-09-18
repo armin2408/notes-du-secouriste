@@ -129,7 +129,7 @@ L’avertissement est **recommandé**, pas bloquant pour une bêta.
 À chaque nouvelle version acceptée par Google :
 
 1. Incrémenter `versionCode` dans `android/app/build.gradle.kts` (obligatoire).
-2. Mettre à jour `versionName` (ex. `0.1.1-beta`).
+2. Mettre à jour `versionName` (ex. `0.2.2-beta`).
 3. Rebuild `bundleRelease` et uploader.
 
 ---

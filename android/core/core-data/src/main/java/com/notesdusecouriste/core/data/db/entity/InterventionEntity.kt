@@ -13,4 +13,6 @@ data class InterventionEntity(
     val nom: String? = null,
     val prenom: String? = null,
     val age: Int? = null,
+    /** Acquittement RGPD photos pour cette intervention uniquement. */
+    val photosConsentAcknowledged: Boolean = false,
 )

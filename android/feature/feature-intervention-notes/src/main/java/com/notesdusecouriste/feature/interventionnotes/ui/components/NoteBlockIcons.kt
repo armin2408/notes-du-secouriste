@@ -7,6 +7,7 @@ import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Psychology
 import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material.icons.outlined.Warning
@@ -17,6 +18,7 @@ enum class NoteSectionKind {
     Mesures,
     Questionnaires,
     Commentaire,
+    Photos,
     Respiration,
     Circulation,
     Conscience,
@@ -30,6 +32,7 @@ fun NoteSectionKind.icon(): ImageVector = when (this) {
     NoteSectionKind.Mesures -> Icons.Outlined.MonitorHeart
     NoteSectionKind.Questionnaires -> Icons.Outlined.MedicalServices
     NoteSectionKind.Commentaire -> Icons.Outlined.Chat
+    NoteSectionKind.Photos -> Icons.Outlined.PhotoCamera
     NoteSectionKind.Respiration -> Icons.Outlined.Air
     NoteSectionKind.Circulation -> Icons.Outlined.FavoriteBorder
     NoteSectionKind.Conscience -> Icons.Outlined.Psychology

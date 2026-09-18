@@ -1,5 +1,7 @@
 # NOTES DU SECOURISTE — Application Android
 
+**Version :** `0.2.1-beta` (versionCode 5) · minSdk 26 · targetSdk 35 · compileSdk 37
+
 ## Prérequis
 
 - [Android Studio](https://developer.android.com/studio) (Ladybug ou plus récent)
@@ -41,37 +43,53 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 .\gradlew installDebug
 ```
 
-L’app **NOTES DU SECOURISTE** s’installe et se lance.
+L’app **Notes du Secouriste** s’installe et se lance.
 
-## Parcours testable (état code 2026-05-20)
+## Parcours testable (état code 0.2.1-beta)
 
 ### Accueil (Epic 1)
 
-- Titre **NOTES DU SECOURISTE**, **Nouvelle intervention** (sous-titre Notes secouriste)
-- Liste des interventions sur l’accueil (pas d’écran Historique séparé)
-- Icône **Aide mémoire** (placeholder), **toggle thème** clair/sombre
+- Titre **Notes du Secouriste**, badge **Bêta**, CTA **Nouvelle intervention**
+- Liste des interventions (identité + date) ; icône **Récap** sur chaque ligne
+- Icône **Aide-mémoire**, **toggle thème** clair/sombre
 - **Réglages** : politique thème (système / dernier choisi)
 - Suppression : appui long → mode sélection → supprimer une ou plusieurs interventions
 - Mode avion : création et liste OK
+- Edge-to-edge : barre de navigation 3 boutons transparente avec flou (**Haze**)
 
-### Écran notes (Epics 2 + 3 partiels)
+### Écran notes (Epics 2 + 3 + 4 partiels)
 
-- **Autosave** ~400 ms après chaque modification (indicateur Enregistrement… / Enregistré)
-- Blocs : **VICTIME**, **MESURES**, **COMMENTAIRE** (JSON Room `sectionsJson`, `schemaVersion` v2)
+- **Autosave** ~400 ms (indicateur Enregistrement… / Enregistré)
+- Blocs : **VICTIME**, **MESURES**, **QUESTIONNAIRES** (SAMPLE / OPQRST), **COMMENTAIRE**
+- Persistance : JSON Room `sectionsJson`, `schemaVersion` v2
 - Victime : nom, prénom formaté, date de naissance `jj/mm/aaaa` + âge auto, coordonnées
-- Mesures : plusieurs relevés horodatés (onglets), sous-blocs Respiration / Circulation / Conscience / Suspicion AVC
-- TA **SYS** + **DIA**, fréquences avec suffixes `bpm` / `%`, listes de choix (pills connectées)
-- Appui long sur un onglet heure : modifier date, heure, supprimer le relevé
-- Validation date/heure non bloquante (bordure + icône si format invalide)
+- Mesures : relevés horodatés (onglets) — Respiration, Circulation, Conscience (Glasgow), Suspicion AVC, température, glycémie
+- TA **SYS** + **DIA**, fréquences avec suffixes, listes de choix (pills)
+- Appui long sur un onglet heure : modifier date / heure / supprimer le relevé
 - En-têtes **sticky** empilés (Mesures + onglets + sous-sections)
-- **Récap** : écran lecture seule (Victime → Mesures par relevé → Commentaire), typo 22 sp
-- Barre basse : **Script / Clôturer** → « Bientôt disponible » (Epic 4–5 à venir)
+- Bouton **Récap** en **fin de liste** (pas de barre fixe en bas)
 
-### Non implémenté
+### Récap (Epic 4 partiel)
+
+- Écran lecture seule depuis les notes ou l’accueil
+- Synthèse type tableau (relevés multi-colonnes) + questionnaires
+- **Pas encore** : Script de transmission, Clôture lecture seule, export PDF d’intervention
+
+### Aide-mémoire (Epic 6)
+
+- Onglets personnalisables (créer, masquer, réordonner, dupliquer)
+- Éditeur **rich text** (gras, italique, souligné, titres, listes, liens)
+- Insertion d’images (galerie), recherche multi-occurrences, autosave ~400 ms
+- Liens PDF : ouverture via l’app PDF du téléphone (Intent + FileProvider)
+- Contenu persisté en Markdown (compatible export)
+
+### Non implémenté (roadmap)
 
 - Alertes hors plage, plages de référence ⓘ, réglages plages (Epic 3)
-- Récap, script transmission, clôture lecture seule (Epics 4–5)
-- Aide mémoire Markdown (Epic 6)
+- Script de transmission, clôture → lecture seule (Epics 4–5)
+- Photos dans une note d’intervention
+- Profil secouriste (réglages)
+- Export PDF de la synthèse d’intervention
 - Blocs PRD Contexte, Gestes, Évolution, Transmission (hors modèle actuel)
 
 Documentation détaillée : [`../_bmad-output/implementation-artifacts/implementation-status.md`](../_bmad-output/implementation-artifacts/implementation-status.md)
@@ -80,32 +98,30 @@ Documentation détaillée : [`../_bmad-output/implementation-artifacts/implement
 
 | Module | Rôle |
 |--------|------|
-| `:app` | Navigation, accueil, réglages thème |
-| `:core:core-data` | Room, repositories, modèle `InterventionNoteContent`, validations date/heure |
-| `:core:core-ui` | Thème Material 3 **Expressive**, couleurs terrain |
-| `:feature:feature-intervention-notes` | Écran saisie notes, mesures, sticky headers |
-| `:feature:feature-aide-memoire` | Placeholder aide mémoire |
+| `:app` | Navigation, accueil, réglages thème, edge-to-edge |
+| `:core:core-data` | Room, repositories, modèle `InterventionNoteContent`, validations |
+| `:core:core-ui` | Thème Material 3 **Expressive**, barre système (Haze), previews |
+| `:feature:feature-intervention-notes` | Saisie notes, mesures, questionnaires, récap |
+| `:feature:feature-aide-memoire` | Onglets, éditeur rich text, recherche, images |
 
 ## Commandes utiles
 
 ```powershell
 .\gradlew assembleDebug    # APK debug
-.\gradlew test               # tests unitaires
+.\gradlew bundleRelease    # AAB Play Store (keystore requis)
+.\gradlew test             # tests unitaires
 adb logcat -s NotesDuSecouriste  # logs (après tag ajouté)
 ```
 
-APK généré : `app/build/outputs/apk/debug/app-debug.apk`
+APK debug : `app/build/outputs/apk/debug/app-debug.apk`  
+AAB release : `app/build/outputs/bundle/release/app-release.aab`
 
 ## Publication Play Store (bêta)
 
 Guide complet : [`../docs/play-store-beta.md`](../docs/play-store-beta.md)
-
-Build release signé (après `keystore.properties` + keystore) :
 
 ```powershell
 cd android
 $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 .\gradlew.bat bundleRelease
 ```
-
-AAB : `app/build/outputs/bundle/release/app-release.aab`

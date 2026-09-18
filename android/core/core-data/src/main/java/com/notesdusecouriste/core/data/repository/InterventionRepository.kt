@@ -16,6 +16,7 @@ import javax.inject.Singleton
 @Singleton
 class InterventionRepository @Inject constructor(
     private val database: AppDatabase,
+    private val photoRepository: InterventionPhotoRepository,
 ) {
     private val interventionDao = database.interventionDao()
     private val notesDao = database.interventionNotesDao()
@@ -56,6 +57,7 @@ class InterventionRepository @Inject constructor(
     }
 
     suspend fun deleteIntervention(id: Long) {
+        photoRepository.deleteAllForIntervention(id)
         database.withTransaction {
             notesDao.deleteByInterventionId(id)
             interventionDao.deleteById(id)
@@ -64,6 +66,7 @@ class InterventionRepository @Inject constructor(
 
     suspend fun deleteInterventions(ids: Set<Long>) {
         if (ids.isEmpty()) return
+        photoRepository.deleteAllForInterventions(ids)
         val idList = ids.toList()
         database.withTransaction {
             notesDao.deleteByInterventionIds(idList)

@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import com.notesdusecouriste.app.ui.components.AideMemoireThemeActions
 import com.notesdusecouriste.app.ui.components.ThemeToggleIconButton
 import com.notesdusecouriste.app.ui.home.HomeScreen
+import com.notesdusecouriste.app.ui.settings.SecouristeProfileScreen
 import com.notesdusecouriste.app.ui.settings.SettingsScreen
 import com.notesdusecouriste.app.ui.theme.appThemeViewModel
 import com.notesdusecouriste.feature.aidememoire.ui.AideMemoirePlaceholderScreen
@@ -94,6 +95,9 @@ fun AppNavHost() {
                         }
                     }
                 },
+                onAideMemoire = {
+                    navController.navigate(Routes.AIDE_MEMOIRE)
+                },
                 actions = {
                     AideMemoireThemeActions(
                         onAideMemoire = {
@@ -117,7 +121,15 @@ fun AppNavHost() {
             )
         }
         composable(Routes.SETTINGS) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenProfile = { navController.navigate(Routes.SECOURISTE_PROFILE) },
+            )
+        }
+        composable(Routes.SECOURISTE_PROFILE) {
+            SecouristeProfileScreen(
+                onBack = { navController.popBackStack() },
+            )
         }
     }
 }

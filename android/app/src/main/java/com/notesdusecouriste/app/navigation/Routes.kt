@@ -6,6 +6,7 @@ object Routes {
     const val INTERVENTION_RECAP = "intervention/{interventionId}/recap"
     const val AIDE_MEMOIRE = "aide_memoire"
     const val SETTINGS = "settings"
+    const val SECOURISTE_PROFILE = "settings/profile"
 
     fun intervention(id: Long) = "intervention/$id"
 

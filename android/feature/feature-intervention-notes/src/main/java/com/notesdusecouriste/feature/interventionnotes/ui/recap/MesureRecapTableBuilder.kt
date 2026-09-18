@@ -432,7 +432,7 @@ internal object MesureRecapTableBuilder {
         val value = trimmed.replace(',', '.').toDoubleOrNull()
             ?: return RecapTableCell(trimmed)
         val tone = if (value >= 37.0 && value < 38.0) RecapCellTone.Green else RecapCellTone.Orange
-        return RecapTableCell(text = trimmed, tone = tone)
+        return RecapTableCell(text = "$trimmed °C", tone = tone)
     }
 
     private fun glycemieCell(raw: String, unit: GlycemieUnit, emptyCell: String): RecapTableCell {

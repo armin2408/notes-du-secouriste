@@ -7,6 +7,7 @@ import com.notesdusecouriste.core.data.model.CirculationMesure
 import com.notesdusecouriste.core.data.model.ConscienceMesure
 import com.notesdusecouriste.core.data.model.GlasgowMesure
 import com.notesdusecouriste.core.data.model.InterventionNoteContent
+import com.notesdusecouriste.core.data.model.InterventionPhoto
 import com.notesdusecouriste.core.data.model.MesureEntry
 import com.notesdusecouriste.core.data.model.MesuresBlock
 import com.notesdusecouriste.core.data.model.RespirationMesure
@@ -18,7 +19,9 @@ import com.notesdusecouriste.core.data.model.applyVictimeManualAge
 import com.notesdusecouriste.core.data.model.formatNoteHeader
 import com.notesdusecouriste.core.data.model.normalized
 import com.notesdusecouriste.core.data.model.withNormalizedMesures
+import com.notesdusecouriste.core.data.repository.InterventionPhotoRepository
 import com.notesdusecouriste.core.data.repository.InterventionRepository
+import android.net.Uri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -38,12 +41,19 @@ data class InterventionNotesUiState(
     val errorMessage: String? = null,
     /** Sous-chapitres dépliés (non persisté), clé = "$scopeId|${kind.name}". */
     val expandedSubSections: Set<String> = emptySet(),
+    val photos: List<InterventionPhoto> = emptyList(),
+    val photosConsentAcknowledged: Boolean = false,
+    val showPhotoConsentDialog: Boolean = false,
+    val showPhotoSourceDialog: Boolean = false,
+    val photoPendingDeleteId: Long? = null,
+    val isImportingPhoto: Boolean = false,
 )
 
 @HiltViewModel
 class InterventionNotesViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: InterventionRepository,
+    private val photoRepository: InterventionPhotoRepository,
 ) : ViewModel() {
     private val interventionId: Long =
         checkNotNull(savedStateHandle.get<Long>("interventionId")) {
@@ -66,7 +76,110 @@ class InterventionNotesViewModel @Inject constructor(
                 applyContent(remote.withNormalizedMesures())
             }
         }
+        viewModelScope.launch {
+            photoRepository.observePhotos(interventionId).collect { photos ->
+                _uiState.update { it.copy(photos = photos) }
+            }
+        }
+        viewModelScope.launch {
+            photoRepository.observePhotosConsent(interventionId).collect { acknowledged ->
+                _uiState.update { it.copy(photosConsentAcknowledged = acknowledged) }
+            }
+        }
     }
+
+    fun onAddPhotoClicked() {
+        if (_uiState.value.photosConsentAcknowledged) {
+            _uiState.update { it.copy(showPhotoSourceDialog = true) }
+        } else {
+            _uiState.update { it.copy(showPhotoConsentDialog = true) }
+        }
+    }
+
+    fun dismissPhotoConsentDialog() {
+        _uiState.update { it.copy(showPhotoConsentDialog = false) }
+    }
+
+    fun acknowledgePhotosConsent() {
+        viewModelScope.launch {
+            runCatching {
+                photoRepository.acknowledgePhotosConsent(interventionId)
+            }.onSuccess {
+                _uiState.update {
+                    it.copy(
+                        photosConsentAcknowledged = true,
+                        showPhotoConsentDialog = false,
+                        showPhotoSourceDialog = true,
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        showPhotoConsentDialog = false,
+                        errorMessage = error.message ?: "Échec de l’acquittement",
+                    )
+                }
+            }
+        }
+    }
+
+    fun dismissPhotoSourceDialog() {
+        _uiState.update { it.copy(showPhotoSourceDialog = false) }
+    }
+
+    fun importPhotoFromUri(uri: Uri) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isImportingPhoto = true, showPhotoSourceDialog = false, errorMessage = null)
+            }
+            runCatching {
+                photoRepository.addPhotoFromUri(interventionId, uri)
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        isImportingPhoto = false,
+                        errorMessage = "Impossible d’ajouter la photo.",
+                    )
+                }
+            }.onSuccess {
+                _uiState.update { it.copy(isImportingPhoto = false) }
+            }
+        }
+    }
+
+    fun requestDeletePhoto(photoId: Long) {
+        _uiState.update { it.copy(photoPendingDeleteId = photoId) }
+    }
+
+    fun dismissDeletePhoto() {
+        _uiState.update { it.copy(photoPendingDeleteId = null) }
+    }
+
+    fun confirmDeletePhoto() {
+        val photoId = _uiState.value.photoPendingDeleteId ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(photoPendingDeleteId = null) }
+            runCatching {
+                photoRepository.deletePhoto(photoId)
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(errorMessage = error.message ?: "Impossible de supprimer la photo.")
+                }
+            }
+        }
+    }
+
+    fun clearErrorMessage() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    fun notifyUserMessage(message: String) {
+        _uiState.update { it.copy(errorMessage = message) }
+    }
+
+    fun resolvePhotoPath(fileName: String): String =
+        photoRepository.resolveFilePath(fileName)
+
 
     private fun applyContent(content: InterventionNoteContent) {
         val normalized = content.withNormalizedVictime()

@@ -8,12 +8,16 @@ Application Android **hors ligne** pour structurer les notes de terrain en secou
 
 - **Interventions** — création, liste, sélection multiple, suppression
 - **Victime** — identité, date de naissance, âge, coordonnées
-- **Mesures** — relevés horodatés (respiration, circulation, conscience / Glasgow, suspicion d’AVC)
+- **Mesures** — relevés horodatés (respiration, circulation, conscience / Glasgow, suspicion d’AVC, température, glycémie)
 - **Questionnaires** — SAMPLE, OPQRST
-- **Récap** — lecture seule pour préparer la transmission orale
-- **Aide-mémoire** — onglets personnalisables, éditeur rich text (gras, italique, listes, liens), recherche, sauvegarde automatique
-- **Thème** — clair / sombre, interface edge-to-edge
+- **Récap** — lecture seule (synthèse type tableau) depuis les notes ou l’accueil
+- **Aide-mémoire** — onglets personnalisables, éditeur rich text (gras, italique, listes, liens), images, recherche, sauvegarde automatique
+- **Thème** — clair / sombre, edge-to-edge avec flou de la barre de navigation (3 boutons)
 - **100 % hors ligne** — aucune collecte de données par l’éditeur ; stockage local sur l’appareil
+
+### Pas encore dans la bêta
+
+Photos dans une note · profil secouriste · export PDF de synthèse · script de transmission · clôture d’intervention · alertes vitales
 
 ## Captures d’écran
 

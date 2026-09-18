@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.notesdusecouriste.core.data.db.AppDatabase
 import com.notesdusecouriste.core.data.db.migration.MIGRATION_1_2
+import com.notesdusecouriste.core.data.db.migration.MIGRATION_2_3
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,6 +23,6 @@ object DataModule {
             AppDatabase::class.java,
             "notes_du_secouriste.db",
         )
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
 }

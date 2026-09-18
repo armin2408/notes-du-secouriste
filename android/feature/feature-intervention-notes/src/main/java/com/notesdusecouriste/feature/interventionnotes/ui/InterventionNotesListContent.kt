@@ -165,6 +165,7 @@ fun InterventionNotesListContent(
                     registry = registry,
                 )
                 commentaireSection(content, viewModel, context, registry)
+                photosSection(viewModel, uiState, context, registry)
                 item(key = "recap_action") {
                     Button(
                         onClick = onRecap,

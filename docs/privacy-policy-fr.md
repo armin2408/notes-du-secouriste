@@ -1,7 +1,7 @@
 # Politique de confidentialité — Notes du Secouriste
 
-**Dernière mise à jour :** juin 2026  
-**Application :** Notes du Secouriste (bêta)  
+**Dernière mise à jour :** juillet 2026  
+**Application :** Notes du Secouriste (`0.2.1-beta`)  
 **Éditeur :** [À compléter : nom / association / contact]
 
 ## Résumé
@@ -12,13 +12,15 @@ Notes du Secouriste est une application **hors ligne**. Les données que vous sa
 
 L’application peut enregistrer localement, selon votre utilisation :
 
-- identifiants d’intervention (date, statut brouillon / clôturé) ;
+- identifiants d’intervention (date, statut brouillon ; une clôture pourra être proposée dans une version ultérieure) ;
 - informations victime que vous saisissez (nom, prénom, date de naissance, coordonnées, etc.) ;
 - relevés et constantes (mesures, questionnaires, commentaires) ;
+- photos que vous ajoutez à une note d’intervention (stockage local ; métadonnées de localisation retirées à l’import) ;
 - préférences d’affichage (thème) ;
-- contenu personnalisé de l’aide-mémoire (onglets, textes).
+- contenu personnalisé de l’aide-mémoire (onglets, textes, images éventuelles) ;
+- profil secouriste (identité, contact, compétences) si vous le renseignez.
 
-Ces données sont stockées dans la base locale de l’appareil (SQLite / Room). Elles ne quittent pas l’application sauf si **vous** choisissez d’exporter ou de partager un fichier via une autre application (ex. lecteur PDF, messagerie).
+Ces données sont stockées dans la base locale de l’appareil (SQLite / Room) et, le cas échéant, dans le stockage privé de l’application (fichiers images). Elles ne quittent pas l’application sauf si **vous** choisissez d’ouvrir ou de partager un fichier via une autre application (ex. export PDF d’une synthèse d’intervention, ouverture d’une fiche PDF de l’aide-mémoire, messagerie).
 
 ## Données que nous ne collectons pas
 

@@ -15,6 +15,9 @@ interface InterventionDao {
     @Query("SELECT * FROM interventions WHERE id = :id")
     suspend fun getById(id: Long): InterventionEntity?
 
+    @Query("SELECT * FROM interventions WHERE id = :id")
+    fun observeById(id: Long): Flow<InterventionEntity?>
+
     @Query("SELECT * FROM interventions ORDER BY startedAtEpochMillis DESC")
     fun observeAll(): Flow<List<InterventionEntity>>
 
@@ -31,6 +34,15 @@ interface InterventionDao {
         prenom: String?,
         age: Int?,
     )
+
+    @Query(
+        """
+        UPDATE interventions
+        SET photosConsentAcknowledged = :acknowledged
+        WHERE id = :id
+        """,
+    )
+    suspend fun updatePhotosConsent(id: Long, acknowledged: Boolean)
 
     @Query("DELETE FROM interventions WHERE id = :id")
     suspend fun deleteById(id: Long)

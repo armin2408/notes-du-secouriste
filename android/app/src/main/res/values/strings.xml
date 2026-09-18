@@ -28,4 +28,16 @@
     <string name="home_selection_hint">Appuyez sur les cartes pour sélectionner ou désélectionner.</string>
     <string name="home_selection_cancel">Annuler la sélection</string>
     <string name="home_selection_delete">Supprimer la sélection</string>
+
+    <string name="settings_profile_entry">Mon profil secouriste</string>
+    <string name="settings_profile_entry_desc">Identité, contact et compétences pour le PDF.</string>
+    <string name="profile_title">Profil secouriste</string>
+    <string name="profile_hint">Ce profil vous identifie sur les exports en PDF. Si vous le souhaitez, renseignez votre identité, un contact et vos compétences. Ces informations peuvent être utile dans le parcours de la victime : transmission à un medecin traitant, medecin du travail, ambulancier, pompier, etc... Les données restent uniquement sur cet appareil. </string>
+    <string name="profile_prenom">Prénom</string>
+    <string name="profile_nom">Nom</string>
+    <string name="profile_contact">Contact (e-mail ou téléphone)</string>
+    <string name="profile_organisme">Organisme / structure</string>
+    <string name="profile_competences">Compétences / qualifications</string>
+    <string name="profile_saving">Enregistrement…</string>
+    <string name="profile_saved_auto">Enregistré</string>
 </resources>

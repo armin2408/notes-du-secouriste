@@ -47,49 +47,36 @@ object InterventionRecapBuilder {
 
 
     private fun buildIdentityLines(context: Context, victime: VictimeBlock): List<RecapLine> =
-
         buildList {
-
-            line(context, R.string.field_nom, victime.nom)?.let(::add)
-
-            line(context, R.string.field_prenom, victime.prenom)?.let(::add)
-
+            val displayName = listOf(victime.prenom.trim(), victime.nom.trim())
+                .filter { it.isNotEmpty() }
+                .joinToString(" ")
+            if (displayName.isNotEmpty()) {
+                add(
+                    RecapLine(
+                        label = context.getString(R.string.pdf_label_prenom_nom),
+                        value = displayName,
+                    ),
+                )
+            }
             val dob = victime.dateNaissance.trim()
-
             if (dob.isNotEmpty()) {
-
                 add(
-
                     RecapLine(
-
                         label = context.getString(R.string.field_date_naissance),
-
                         value = formatDateNaissanceDisplay(dob),
-
                     ),
-
                 )
-
             }
-
             victime.age.trim().takeIf { it.isNotEmpty() }?.let { age ->
-
                 add(
-
                     RecapLine(
-
                         label = context.getString(R.string.field_age),
-
                         value = context.getString(R.string.recap_age_value, age),
-
                     ),
-
                 )
-
             }
-
             line(context, R.string.field_coordonnees, victime.coordonnees)?.let(::add)
-
         }
 
 

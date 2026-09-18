@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="guardrail_privacy_title">Confidentialité &amp; données</string>
+    <string name="guardrail_privacy_short">Vos notes restent stockées sur cet appareil. Aucune donnée n’est envoyée vers un serveur. Ce carnet de notes informatisé ne remplace pas les outils de votre organisation, association ou entreprise.</string>
+    <string name="guardrail_privacy_policy_label">Politique de confidentialité</string>
+    <string name="guardrail_privacy_policy_url">https://armin2408.github.io/notes-du-secouriste/</string>
+
+    <string name="guardrail_document_title">Avertissement</string>
+    <string name="guardrail_document_body">Document généré localement à partir des notes personnelles du secouriste. Il a une valeur d’aide-mémoire et ne remplace pas les documents officiels des professionnels de santé. Les informations peuvent être incomplètes, subjectives ou obsolètes. Vérifiez toujours auprès des procédures en vigueur et des responsables compétents.\n\nTraitement : données stockées localement sur l’appareil de l’utilisateur ; pas de transmission vers un serveur.\n\n© %1$d — usage personnel ; reproduction sous responsabilité de l’utilisateur.</string>
+
+    <string name="guardrail_ack_button">Compris</string>
+    <string name="settings_legal_section">Mentions &amp; confidentialité</string>
+
+    <string name="guardrail_photo_title">Photos &amp; confidentialité</string>
+    <string name="guardrail_photo_body">Les photos ajoutées à cette note restent stockées uniquement sur cet appareil. Elles peuvent contenir des données sensibles (visage, blessure, contexte). Les photos prises avec l\'application sont séparées de votre galerie personnelle. N’ajoutez une photo que si vous avez le cadre légal ou l’accord adapté. Aucune photo n’est envoyée vers un serveur. Les métadonnées de localisation sont retirées à l’import.</string>
+    <string name="guardrail_photo_ack">J’ai compris</string>
+</resources>
