@@ -15,7 +15,7 @@ data class ChangelogEntry(
 object ChangelogCatalog {
     val entries: List<ChangelogEntry> = listOf(
         ChangelogEntry(
-            versionCode = 6,
+            versionCode = 7,
             versionName = "0.3.0-beta",
             title = "Accueil, journal et identité visuelle",
             bodyMarkdown = """
@@ -28,6 +28,7 @@ object ChangelogCatalog {
                 - Nouvelle palette terrain (bleu #1565C0, sans violet)
                 - Couleurs métier (normal / à surveiller / alerte / critique) plus lisibles
                 - Thème clair et sombre alignés Material 3 Expressive
+                - Cible Android 16 (API 36) pour Google Play
             """.trimIndent(),
         ),
         ChangelogEntry(

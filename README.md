@@ -62,7 +62,7 @@ Guide détaillé (USB, structure des modules, build release) : [`android/README.
 
 - Kotlin, Jetpack Compose, Material 3 Expressive
 - Room, Hilt, Navigation Compose, DataStore
-- Min SDK 26 · Target SDK 35
+- Min SDK 26 · Target SDK 36
 
 ## Publication (bêta Play Store)
 

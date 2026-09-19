@@ -23,8 +23,8 @@ android {
     defaultConfig {
         applicationId = "com.notesdusecouriste.app"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 6
+        targetSdk = 36
+        versionCode = 7
         versionName = "0.3.0-beta"
     }
 
@@ -92,12 +92,16 @@ val packageReleaseNativeDebugSymbols = tasks.register<Zip>("packageReleaseNative
     from(mergeLibs) {
         include("**/*.so")
     }
+    dependsOn("mergeReleaseNativeLibs")
     onlyIf { mergeLibs.get().asFile.exists() }
 }
 
 afterEvaluate {
-    tasks.matching { it.name == "bundleRelease" }.configureEach {
+    tasks.named("bundleRelease").configure {
         finalizedBy(packageReleaseNativeDebugSymbols)
+    }
+    tasks.named("packageReleaseNativeDebugSymbols").configure {
+        mustRunAfter("stripReleaseDebugSymbols")
     }
 }
 

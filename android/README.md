@@ -1,6 +1,6 @@
 # NOTES DU SECOURISTE — Application Android
 
-**Version :** `0.3.0-beta` (versionCode 6) · minSdk 26 · targetSdk 35 · compileSdk 37
+**Version :** `0.3.0-beta` (versionCode 7) · minSdk 26 · targetSdk 36 · compileSdk 37
 
 ## Prérequis
 
