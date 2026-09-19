@@ -1,91 +1,185 @@
 # Notes du Secouriste
 
-Application Android **hors ligne** pour structurer les notes de terrain en secourisme (PSE) : victime, mesures horodatées, questionnaires, récap de transmission et aide-mémoire intégrée.
+Application Android **100 % hors ligne** pour structurer les notes de terrain en secourisme (PSE) : comme un bloc-notes numérique pensé pour l’intervention, pas un dossier médical.
 
-> **Version bêta** — `0.3.0-beta` (test fermé Google Play). L’application est un outil d’aide à la prise de notes ; elle ne remplace pas un document médical réglementé ni l’avis d’un professionnel de santé.
+> **Version bêta** — `0.3.0-beta` (test fermé Google Play)  
+> Outil d’**aide à la prise de notes**. Elle ne remplace ni un bilan officiel, ni les outils imposés par une association ou un service de secours, ni l’avis d’un professionnel de santé.
 
-## Fonctionnalités
+**Dépôt :** [github.com/armin2408/notes-du-secouriste](https://github.com/armin2408/notes-du-secouriste)  
+**Confidentialité :** [armin2408.github.io/notes-du-secouriste](https://armin2408.github.io/notes-du-secouriste/)
 
-- **Interventions** — création, liste, sélection multiple, suppression
-- **Victime** — identité, date de naissance, âge, coordonnées
-- **Mesures** — relevés horodatés (respiration, circulation, conscience / Glasgow, suspicion d’AVC, température, glycémie)
-- **Questionnaires** — SAMPLE, OPQRST
-- **Photos** — pièces jointes locales sur l’intervention
-- **Profil secouriste** — identité / contact pour les exports
-- **Synthèse PDF** — aperçu, zoom, orientation paysage, partage
-- **Aide-mémoire** — onglets personnalisables, éditeur rich text (gras, italique, listes, liens), images, recherche, sauvegarde automatique
-- **Onboarding** — carrousel de bienvenue + journal des mises à jour
-- **Thème** — clair / sombre (palette terrain), edge-to-edge avec flou de la barre de navigation (3 boutons)
-- **100 % hors ligne** — aucune collecte de données par l’éditeur ; stockage local sur l’appareil
+---
 
-### Pas encore dans la bêta
+## À quoi ça sert ?
 
-Script de transmission · clôture d’intervention · alertes vitales
+Sur le terrain, le secouriste doit souvent mémoriser rapidement :
 
-## Captures d’écran
+- qui est la victime ;
+- ce qu’il observe (respiration, pouls, conscience, etc.) ;
+- l’évolution dans le temps ;
+- les éléments à transmettre à l’oral (chef d’équipe, régulation, relève).
 
-_À compléter lors de la publication Play Store._
+**Notes du Secouriste** aide à **saisir vite**, **retrouver clairement**, puis **préparer une synthèse** (PDF) — sans compte, sans cloud éditeur, sans réseau obligatoire.
+
+---
+
+## Pour qui ?
+
+- Secouristes **PSE1 / PSE2** (événementiel, association, binôme, garde)
+- Situations où un carnet papier est trop lent ou illisible
+- Zones blanches / mode avion : l’app continue de fonctionner
+
+---
+
+## Parcours typique d’une intervention
+
+1. **Créer une intervention** depuis l’accueil  
+2. Renseigner la **victime** (identité, âge, coordonnées)  
+3. Ajouter des **relevés horodatés** au fil de l’action (plusieurs onglets / heures)  
+4. Compléter **SAMPLE** / **OPQRST** si utile  
+5. Joindre des **photos** locales si besoin  
+6. Ouvrir la **synthèse PDF** pour relire, zoomer, partager (ex. impression / envoi hors app)  
+7. S’appuyer sur l’**aide-mémoire** personnel entre deux interventions  
+
+La saisie est **autosauvegardée** : on peut quitter l’écran sans perdre le travail.
+
+---
+
+## Fonctionnalités (bêta 0.3.0)
+
+### Accueil & interventions
+- Liste des interventions (brouillons)
+- Création rapide, sélection multiple, suppression
+- Accès direct à la synthèse depuis une ligne
+- Badge **Bêta**, thème clair / sombre
+
+### Victime
+- Nom, prénom, date de naissance, âge calculé
+- Coordonnées utiles à la transmission
+
+### Mesures (relevés horodatés)
+Blocs structurés, avec couleurs métier (normal / à surveiller / alerte / critique) :
+
+| Domaine | Exemples de saisie |
+|---------|--------------------|
+| **Respiration** | Fréquence, amplitude, régularité… |
+| **Circulation** | Pouls, TA (SYS/DIA), remplissage… |
+| **Conscience** | Glasgow (Y/V/M + total) |
+| **Suspicion AVC** | Signes orientés |
+| **Température / glycémie** | Valeurs numériques avec repères visuels |
+
+Plusieurs relevés par intervention : chaque onglet correspond à un **horaire**.
+
+### Questionnaires
+- **SAMPLE** — antécédents / contexte
+- **OPQRST** — douleur / symptômes
+
+### Photos
+- Pièces jointes stockées **uniquement sur l’appareil**
+- Associées à l’intervention pour la synthèse
+
+### Profil secouriste
+- Identité / contact renseignés dans les réglages
+- Réutilisés sur les exports PDF
+
+### Synthèse PDF
+- Aperçu intégré (zoom, défilement)
+- Orientation portrait / paysage
+- Partage via les apps du téléphone
+- Contenu : victime, mesures, questionnaires, profil, photos
+
+### Aide-mémoire
+- Onglets personnalisables (créer, masquer, réordonner, dupliquer)
+- Éditeur enrichi : gras, italique, listes, liens, images
+- Recherche et sauvegarde automatique
+- Contenu local, indépendant des interventions
+
+### Accueil guidé & journal
+- Carrousel de bienvenue au premier lancement
+- **Journal des mises à jour** depuis les réglages
+
+### Interface
+- Material 3 Expressive
+- Palette **terrain** (bleu `#1565C0`, sans violet)
+- Clair / sombre, edge-to-edge, barre de navigation floutée (3 boutons)
+
+---
+
+## Ce qui n’est pas encore dans la bêta
+
+- Script de transmission guidé
+- Clôture / verrouillage d’intervention
+- Alertes vitales automatiques
+
+---
+
+## Confidentialité (en bref)
+
+| Point | Comportement |
+|-------|----------------|
+| Compte éditeur | **Non** |
+| Serveur / cloud éditeur | **Non** |
+| Stockage | **Local** (téléphone) |
+| Permission Internet | **Absente** du manifeste |
+
+Détail : [`docs/privacy-policy-fr.md`](docs/privacy-policy-fr.md) · [page web](https://armin2408.github.io/notes-du-secouriste/)
+
+---
 
 ## Prérequis
 
-- Android **8.0+** (API 26)
-- [Android Studio](https://developer.android.com/studio) (JDK 17) pour compiler le projet
+- Téléphone / tablette **Android 8.0+** (API 26)
+- Pour développer : [Android Studio](https://developer.android.com/studio) + JDK 17
 
-## Démarrage rapide
+---
 
-Le code de l’application se trouve dans le dossier [`android/`](android/).
+## Démarrage rapide (développeurs)
+
+Le code est dans [`android/`](android/).
 
 ```powershell
 cd android
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 .\gradlew installDebug
 ```
 
-Guide détaillé (USB, structure des modules, build release) : [`android/README.md`](android/README.md).
+Guide détaillé (USB, modules, release) : [`android/README.md`](android/README.md).
 
-## Structure du dépôt
+### Structure du dépôt
 
 ```
-├── android/          # Projet Gradle (app + modules feature / core)
-├── docs/             # Fiche Play Store, politique de confidentialité (GitHub Pages)
-└── README.md         # Ce fichier
+├── android/     # Application Gradle (app + core + features)
+├── docs/        # Play Store, confidentialité, checklists
+└── README.md
 ```
 
 | Module | Rôle |
 |--------|------|
-| `:app` | Navigation, accueil, réglages |
-| `:core:core-data` | Room, repositories, modèle de données |
-| `:core:core-ui` | Thème Material 3, barre système, previews |
-| `:feature:feature-intervention-notes` | Saisie notes, mesures, récap |
+| `:app` | Navigation, accueil, réglages, onboarding |
+| `:core:core-data` | Room, repositories, préférences |
+| `:core:core-ui` | Thème Material 3, couleurs sémantiques |
+| `:feature:feature-intervention-notes` | Notes, mesures, PDF |
 | `:feature:feature-aide-memoire` | Aide-mémoire |
+| `:feature:feature-onboarding` | Bienvenue + journal |
 
-## Stack technique
+**Stack :** Kotlin · Jetpack Compose · Material 3 Expressive · Room · Hilt · DataStore  
+**SDK :** min 26 · target **36** · compile 37
 
-- Kotlin, Jetpack Compose, Material 3 Expressive
-- Room, Hilt, Navigation Compose, DataStore
-- Min SDK 26 · Target SDK 36
-
-## Publication (bêta Play Store)
-
-- Guide : [`docs/play-store-beta.md`](docs/play-store-beta.md)
-- Textes fiche store : [`docs/store-listing-fr.md`](docs/store-listing-fr.md)
-- [Politique de confidentialité](https://armin2408.github.io/notes-du-secouriste/) (GitHub Pages)
-
-Build release signé :
+### Bundle Play Store
 
 ```powershell
 cd android
 .\gradlew bundleRelease
 ```
 
-AAB : `android/app/build/outputs/bundle/release/app-release.aab`
+Sortie : `android/app/build/outputs/bundle/release/app-release.aab`  
+Guide : [`docs/play-store-beta.md`](docs/play-store-beta.md) · textes fiche : [`docs/store-listing-fr.md`](docs/store-listing-fr.md)
 
-## Confidentialité
+---
 
-Les données saisies (notes d’intervention, aide-mémoire) restent **sur l’appareil**. Aucune transmission vers un serveur de l’éditeur. Détails : [`docs/privacy-policy-fr.md`](docs/privacy-policy-fr.md).
+## Contribution & retours
 
-## Contribution
-
-Ce dépôt est en phase de **bêta fermée**. Les retours des testeurs sont les bienvenus (bugs, ergonomie terrain).
+Bêta **fermée** : les retours testeurs (bugs, ergonomie terrain, formulations) sont les bienvenus via Issues GitHub ou le canal indiqué aux bêta-testeurs.
 
 ---
 
