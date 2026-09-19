@@ -5,10 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.notesdusecouriste.core.data.model.GlasgowMesure
-import com.notesdusecouriste.core.ui.theme.AlertCritical
-import com.notesdusecouriste.core.ui.theme.AlertWarning
-import com.notesdusecouriste.core.ui.theme.ChoiceSelectedGreenContainer
-import com.notesdusecouriste.core.ui.theme.ChoiceSelectedGreenOnContainer
+import com.notesdusecouriste.core.ui.theme.LocalNotesSemanticColors
 
 enum class GlasgowScoreSeverity {
     Neutral,
@@ -33,22 +30,24 @@ data class GlasgowScoreColors(
 )
 
 @Composable
-fun GlasgowScoreSeverity.colors(): GlasgowScoreColors =
-    when (this) {
+fun GlasgowScoreSeverity.colors(): GlasgowScoreColors {
+    val semantic = LocalNotesSemanticColors.current
+    return when (this) {
         GlasgowScoreSeverity.Neutral -> GlasgowScoreColors(
             container = MaterialTheme.colorScheme.surfaceContainerHighest,
             onContainer = MaterialTheme.colorScheme.onSurface,
         )
         GlasgowScoreSeverity.Green -> GlasgowScoreColors(
-            container = ChoiceSelectedGreenContainer,
-            onContainer = ChoiceSelectedGreenOnContainer,
+            container = semantic.normalContainer,
+            onContainer = semantic.normalOnContainer,
         )
         GlasgowScoreSeverity.Orange -> GlasgowScoreColors(
-            container = AlertWarning.copy(alpha = 0.35f),
-            onContainer = Color(0xFFE65100),
+            container = semantic.alertContainer,
+            onContainer = semantic.alertOnContainer,
         )
         GlasgowScoreSeverity.Red -> GlasgowScoreColors(
-            container = AlertCritical.copy(alpha = 0.28f),
-            onContainer = Color(0xFFB71C1C),
+            container = semantic.criticalContainer,
+            onContainer = semantic.criticalOnContainer,
         )
     }
+}

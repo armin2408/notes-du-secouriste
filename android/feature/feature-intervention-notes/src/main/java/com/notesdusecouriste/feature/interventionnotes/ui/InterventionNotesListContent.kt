@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -66,7 +65,6 @@ private data class MesureDateTimeEditRequest(
 @Composable
 fun InterventionNotesListContent(
     viewModel: InterventionNotesViewModel,
-    onRecap: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -166,18 +164,6 @@ fun InterventionNotesListContent(
                 )
                 commentaireSection(content, viewModel, context, registry)
                 photosSection(viewModel, uiState, context, registry)
-                item(key = "recap_action") {
-                    Button(
-                        onClick = onRecap,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 12.dp, end = 12.dp, top = 24.dp, bottom = 8.dp)
-                            .heightIn(min = 48.dp),
-                        shape = MaterialTheme.shapes.large,
-                    ) {
-                        Text(stringResource(R.string.action_recap))
-                    }
-                }
             }
         }
 

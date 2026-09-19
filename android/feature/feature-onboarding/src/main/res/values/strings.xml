@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_skip">Passer</string>
+    <string name="welcome_next">Suivant</string>
+    <string name="welcome_start">Commencer</string>
+    <string name="welcome_close">Fermer</string>
+    <string name="welcome_page_indicator">Page %1$d sur %2$d</string>
+
+    <string name="welcome_slide1_title">Pourquoi Notes du Secouriste ?</string>
+    <string name="welcome_slide1_body">Pour les secouristes PSE : remplacer le carnet papier par un outil simple, sans compte à créer, utilisable hors réseau.</string>
+
+    <string name="welcome_slide2_title">Quelles fonctionnalités ?</string>
+    <string name="welcome_slide2_body">Noter le bilan rapidement, saisir les constantes, prendre des photos, puis produire une synthèse PDF claire.</string>
+
+    <string name="welcome_slide3_title">Gestion des données</string>
+    <string name="welcome_slide3_body">Stockage local sur l’appareil. Cadre RGPD, secret médical et prise en charge de victime : vous gardez la maîtrise de vos notes.</string>
+
+    <string name="changelog_title">Journal des mises à jour</string>
+    <string name="changelog_latest_badge">Dernière mise à jour</string>
+    <string name="changelog_version_label">Version %1$s</string>
+    <string name="changelog_empty">Aucune entrée pour le moment.</string>
+    <string name="changelog_back">Retour</string>
+</resources>

@@ -162,3 +162,29 @@ data class OpqrstQuestionnaire(
     /** T: Time */
     val temps: String = "",
 )
+
+/** Données exploitables pour une synthèse / PDF (hors photos). */
+fun InterventionNoteContent.hasExportableNoteData(): Boolean {
+    val v = victime
+    if (listOf(v.nom, v.prenom, v.dateNaissance, v.age, v.coordonnees).any { it.isNotBlank() }) {
+        return true
+    }
+    if (mesures.entries.isNotEmpty()) return true
+    val s = questionnaires.sample
+    if (listOf(
+            s.signesSymptomes, s.allergies, s.medicaments,
+            s.antecedents, s.dernierRepas, s.evenements,
+        ).any { it.isNotBlank() }
+    ) {
+        return true
+    }
+    val o = questionnaires.opqrst
+    if (listOf(
+            o.debut, o.provocationPalliation, o.qualite,
+            o.region, o.severite, o.temps,
+        ).any { it.isNotBlank() }
+    ) {
+        return true
+    }
+    return commentaire.isNotBlank()
+}

@@ -18,7 +18,7 @@
     <string name="settings_theme_last_chosen_desc">Toujours comme je l\'ai laissé dans l\'app.</string>
 
     <string name="content_description_delete_intervention">Supprimer l\'intervention</string>
-    <string name="content_description_open_recap">Afficher le récap</string>
+    <string name="content_description_open_recap">Afficher la synthèse PDF</string>
     <string name="delete_confirm_title">Supprimer ?</string>
     <string name="delete_confirm_single">Cette intervention et toutes ses notes seront supprimées définitivement.</string>
     <string name="delete_confirm_multiple">%1$d interventions et leurs notes seront supprimées définitivement.</string>
@@ -31,6 +31,10 @@
 
     <string name="settings_profile_entry">Mon profil secouriste</string>
     <string name="settings_profile_entry_desc">Identité, contact et compétences pour le PDF.</string>
+    <string name="settings_welcome_entry">Écran de bienvenue</string>
+    <string name="settings_welcome_entry_desc">Revoir la présentation de l’application.</string>
+    <string name="settings_changelog_entry">Journal des mises à jour</string>
+    <string name="settings_changelog_entry_desc">Historique des nouveautés par version.</string>
     <string name="profile_title">Profil secouriste</string>
     <string name="profile_hint">Ce profil vous identifie sur les exports en PDF. Si vous le souhaitez, renseignez votre identité, un contact et vos compétences. Ces informations peuvent être utile dans le parcours de la victime : transmission à un medecin traitant, medecin du travail, ambulancier, pompier, etc... Les données restent uniquement sur cet appareil. </string>
     <string name="profile_prenom">Prénom</string>

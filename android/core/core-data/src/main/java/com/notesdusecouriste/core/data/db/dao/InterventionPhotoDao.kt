@@ -35,4 +35,7 @@ interface InterventionPhotoDao {
 
     @Query("DELETE FROM intervention_photos WHERE interventionId IN (:ids)")
     suspend fun deleteByInterventionIds(ids: List<Long>)
+
+    @Query("SELECT interventionId FROM intervention_photos")
+    fun observeAllInterventionIds(): Flow<List<Long>>
 }

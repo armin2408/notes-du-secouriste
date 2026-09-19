@@ -1,7 +1,7 @@
 # Politique de confidentialité — Notes du Secouriste
 
 **Dernière mise à jour :** juillet 2026  
-**Application :** Notes du Secouriste (`0.2.1-beta`)  
+**Application :** Notes du Secouriste (`0.3.0-beta`)  
 **Éditeur :** [À compléter : nom / association / contact]
 
 ## Résumé

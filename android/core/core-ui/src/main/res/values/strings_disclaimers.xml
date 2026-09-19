@@ -12,6 +12,6 @@
     <string name="settings_legal_section">Mentions &amp; confidentialité</string>
 
     <string name="guardrail_photo_title">Photos &amp; confidentialité</string>
-    <string name="guardrail_photo_body">Les photos ajoutées à cette note restent stockées uniquement sur cet appareil. Elles peuvent contenir des données sensibles (visage, blessure, contexte). Les photos prises avec l\'application sont séparées de votre galerie personnelle. N’ajoutez une photo que si vous avez le cadre légal ou l’accord adapté. Aucune photo n’est envoyée vers un serveur. Les métadonnées de localisation sont retirées à l’import.</string>
+    <string name="guardrail_photo_body">Les photos ajoutées à cette note restent stockées uniquement sur cet appareil, séparées de votre galerie personnelle. Ces photos peuvent contenir des données sensibles (visage, blessure, contexte), elles doivents être utilisées uniquement dans le cadre de la prise en charge de la victime.</string>
     <string name="guardrail_photo_ack">J’ai compris</string>
 </resources>

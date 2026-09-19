@@ -29,10 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
-import com.notesdusecouriste.core.ui.theme.ChoiceSelectedGreenContainer
-import com.notesdusecouriste.core.ui.theme.ChoiceSelectedGreenOnContainer
-import com.notesdusecouriste.core.ui.theme.ChoiceSelectedYellowContainer
-import com.notesdusecouriste.core.ui.theme.ChoiceSelectedYellowOnContainer
+import com.notesdusecouriste.core.ui.theme.LocalNotesSemanticColors
 
 enum class ChoiceTone {
     Green,
@@ -196,18 +193,20 @@ private fun expressiveSegmentShape(index: Int, count: Int): Shape {
 private data class ListToneColors(val container: Color, val onContainer: Color)
 
 @Composable
-private fun selectedListColors(isFirstOption: Boolean): ListToneColors =
-    if (isFirstOption) {
+private fun selectedListColors(isFirstOption: Boolean): ListToneColors {
+    val semantic = LocalNotesSemanticColors.current
+    return if (isFirstOption) {
         ListToneColors(
-            container = ChoiceSelectedGreenContainer,
-            onContainer = ChoiceSelectedGreenOnContainer,
+            container = semantic.normalContainer,
+            onContainer = semantic.normalOnContainer,
         )
     } else {
         ListToneColors(
-            container = ChoiceSelectedYellowContainer,
-            onContainer = ChoiceSelectedYellowOnContainer,
+            container = semantic.watchContainer,
+            onContainer = semantic.watchOnContainer,
         )
     }
+}
 
 @Composable
 private fun unselectedListColors(): ListToneColors =

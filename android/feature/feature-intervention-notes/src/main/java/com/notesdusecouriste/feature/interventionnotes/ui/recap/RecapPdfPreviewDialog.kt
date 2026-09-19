@@ -84,7 +84,7 @@ fun RecapPdfPreviewDialog(
     ) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color(0xFFE8E8E8),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             topBar = {
                 TopAppBar(
                     title = {
@@ -134,7 +134,7 @@ fun RecapPdfPreviewDialog(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(Color(0xFFE8E8E8)),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
             ) {
                 PdfPagesViewer(
                     pdfFile = pdfFile,

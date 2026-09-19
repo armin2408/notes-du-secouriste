@@ -124,7 +124,8 @@
     <string name="recap_avc_parole">Parole</string>
     <string name="recap_heure_symptomes">Heure symptômes</string>
 
-    <string name="action_recap">Récap</string>
+    <string name="action_recap">Synthèse</string>
+    <string name="action_photo">Photo</string>
     <string name="action_script">Script</string>
     <string name="action_close">Clôturer</string>
     <string name="action_coming_soon">Bientôt disponible</string>

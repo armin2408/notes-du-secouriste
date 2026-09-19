@@ -40,6 +40,7 @@ data class InterventionRecapUiState(
     val pdfPreviewFile: File? = null,
     val photoCount: Int = 0,
     val pdfLandscape: Boolean = false,
+    val contentLoaded: Boolean = false,
 )
 
 sealed interface RecapExportEvent {
@@ -78,6 +79,7 @@ class InterventionRecapViewModel @Inject constructor(
     private val pdfPreviewFile = MutableStateFlow<File?>(null)
     private val pdfLandscape = MutableStateFlow(false)
     private val orientationManual = MutableStateFlow(false)
+    private val contentLoaded = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
@@ -94,6 +96,7 @@ class InterventionRecapViewModel @Inject constructor(
         viewModelScope.launch {
             var previousKey: String? = null
             recapContentState.collect { state ->
+                contentLoaded.value = true
                 val key = contentFingerprint(state)
                 val hadPreview = pdfPreviewFile.value != null
                 if (previousKey != null && previousKey != key && hadPreview) {
@@ -106,18 +109,23 @@ class InterventionRecapViewModel @Inject constructor(
 
     val uiState: StateFlow<InterventionRecapUiState> =
         combine(
-            recapContentState,
-            recapPreferences.mesuresColumnsExpanded,
-            exporting,
-            pdfPreviewFile,
-            pdfLandscape,
-        ) { content, columnsExpanded, isExporting, preview, landscape ->
-            content.copy(
-                mesuresColumnsExpanded = columnsExpanded,
-                isExportingPdf = isExporting,
-                pdfPreviewFile = preview,
-                pdfLandscape = landscape,
-            )
+            combine(
+                recapContentState,
+                recapPreferences.mesuresColumnsExpanded,
+                exporting,
+                pdfPreviewFile,
+                pdfLandscape,
+            ) { content, columnsExpanded, isExporting, preview, landscape ->
+                content.copy(
+                    mesuresColumnsExpanded = columnsExpanded,
+                    isExportingPdf = isExporting,
+                    pdfPreviewFile = preview,
+                    pdfLandscape = landscape,
+                )
+            },
+            contentLoaded,
+        ) { state, loaded ->
+            state.copy(contentLoaded = loaded)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

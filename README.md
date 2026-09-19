@@ -2,7 +2,7 @@
 
 Application Android **hors ligne** pour structurer les notes de terrain en secourisme (PSE) : victime, mesures horodatées, questionnaires, récap de transmission et aide-mémoire intégrée.
 
-> **Version bêta** — `0.2.1-beta` (test fermé Google Play). L’application est un outil d’aide à la prise de notes ; elle ne remplace pas un document médical réglementé ni l’avis d’un professionnel de santé.
+> **Version bêta** — `0.3.0-beta` (test fermé Google Play). L’application est un outil d’aide à la prise de notes ; elle ne remplace pas un document médical réglementé ni l’avis d’un professionnel de santé.
 
 ## Fonctionnalités
 
@@ -10,14 +10,17 @@ Application Android **hors ligne** pour structurer les notes de terrain en secou
 - **Victime** — identité, date de naissance, âge, coordonnées
 - **Mesures** — relevés horodatés (respiration, circulation, conscience / Glasgow, suspicion d’AVC, température, glycémie)
 - **Questionnaires** — SAMPLE, OPQRST
-- **Récap** — lecture seule (synthèse type tableau) depuis les notes ou l’accueil
+- **Photos** — pièces jointes locales sur l’intervention
+- **Profil secouriste** — identité / contact pour les exports
+- **Synthèse PDF** — aperçu, zoom, orientation paysage, partage
 - **Aide-mémoire** — onglets personnalisables, éditeur rich text (gras, italique, listes, liens), images, recherche, sauvegarde automatique
-- **Thème** — clair / sombre, edge-to-edge avec flou de la barre de navigation (3 boutons)
+- **Onboarding** — carrousel de bienvenue + journal des mises à jour
+- **Thème** — clair / sombre (palette terrain), edge-to-edge avec flou de la barre de navigation (3 boutons)
 - **100 % hors ligne** — aucune collecte de données par l’éditeur ; stockage local sur l’appareil
 
 ### Pas encore dans la bêta
 
-Photos dans une note · profil secouriste · export PDF de synthèse · script de transmission · clôture d’intervention · alertes vitales
+Script de transmission · clôture d’intervention · alertes vitales
 
 ## Captures d’écran
 

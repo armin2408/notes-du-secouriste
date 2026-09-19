@@ -32,7 +32,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.PhotoCamera
@@ -42,7 +41,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -97,14 +95,13 @@ internal fun LazyListScope.photosSection(
 }
 
 @Composable
-private fun PhotosSectionBody(
+fun InterventionPhotosHost(
     viewModel: InterventionNotesViewModel,
     uiState: InterventionNotesUiState,
 ) {
     val context = LocalContext.current
     var captureFile by remember { mutableStateOf<File?>(null) }
     var pendingCameraAfterPermission by remember { mutableStateOf(false) }
-    var previewStartIndex by remember { mutableStateOf<Int?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent(),
@@ -220,6 +217,14 @@ private fun PhotosSectionBody(
             },
         )
     }
+}
+
+@Composable
+private fun PhotosSectionBody(
+    viewModel: InterventionNotesViewModel,
+    uiState: InterventionNotesUiState,
+) {
+    var previewStartIndex by remember { mutableStateOf<Int?>(null) }
 
     uiState.photoPendingDeleteId?.let {
         AlertDialog(
@@ -294,20 +299,6 @@ private fun PhotosSectionBody(
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(28.dp))
                 }
-            }
-
-            OutlinedButton(
-                onClick = viewModel::onAddPhotoClicked,
-                enabled = !uiState.isImportingPhoto,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-            ) {
-                Icon(Icons.Outlined.AddAPhoto, contentDescription = null)
-                Text(
-                    text = stringResource(R.string.photos_add),
-                    modifier = Modifier.padding(start = 8.dp),
-                )
             }
         }
     }

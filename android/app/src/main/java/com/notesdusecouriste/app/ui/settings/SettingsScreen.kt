@@ -18,7 +18,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -48,6 +50,8 @@ import com.notesdusecouriste.core.ui.legal.DisclaimerResources
 fun SettingsScreen(
     onBack: () -> Unit,
     onOpenProfile: () -> Unit,
+    onOpenWelcome: () -> Unit = {},
+    onOpenChangelog: () -> Unit = {},
     themeViewModel: AppThemeViewModel = appThemeViewModel(),
 ) {
     val preferences by themeViewModel.preferences.collectAsStateWithLifecycle()
@@ -106,39 +110,24 @@ fun SettingsScreen(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(24.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onOpenProfile)
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 12.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_profile_entry),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        text = stringResource(R.string.settings_profile_entry_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            SettingsNavRow(
+                icon = Icons.Outlined.Person,
+                title = stringResource(R.string.settings_profile_entry),
+                description = stringResource(R.string.settings_profile_entry_desc),
+                onClick = onOpenProfile,
+            )
+            SettingsNavRow(
+                icon = Icons.Outlined.WavingHand,
+                title = stringResource(R.string.settings_welcome_entry),
+                description = stringResource(R.string.settings_welcome_entry_desc),
+                onClick = onOpenWelcome,
+            )
+            SettingsNavRow(
+                icon = Icons.Outlined.History,
+                title = stringResource(R.string.settings_changelog_entry),
+                description = stringResource(R.string.settings_changelog_entry_desc),
+                onClick = onOpenChangelog,
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
             HorizontalDivider()
@@ -196,6 +185,48 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+@Composable
+private fun SettingsNavRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    description: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

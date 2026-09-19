@@ -56,9 +56,12 @@ Secouristes PSE1 et PSE2 (événementiel, association, binôme, garde) qui souha
 • Mesures structurées — respiration, circulation, conscience (score de Glasgow), suspicion d’AVC, température, glycémie
 • Relevés horodatés — plusieurs onglets par intervention
 • Questionnaires SAMPLE et OPQRST
-• Récap de transmission — lecture seule, synthèse type tableau
+• Photos d’intervention (stockage local)
+• Profil secouriste pour les exports
+• Synthèse PDF — aperçu, zoom, partage
 • Aide-mémoire intégrée — éditeur enrichi, onglets personnalisables, recherche, images
-• Thème clair ou sombre, interface edge-to-edge
+• Accueil guidé + journal des mises à jour
+• Thème clair ou sombre (palette terrain), interface edge-to-edge
 
 ━━━ 100 % HORS LIGNE ━━━
 Pas de compte, pas de cloud éditeur : les données saisies restent sur votre téléphone. Fonctionne en zone blanche ou sans réseau.
@@ -74,17 +77,29 @@ Application en test : l’ergonomie et les fonctionnalités évoluent. Vos retou
 Politique de confidentialité : https://armin2408.github.io/notes-du-secouriste/
 ```
 
+## Notes de version (0.3.0 bêta)
+
+```
+Version bêta 0.3.0 — test fermé.
+
+• Accueil guidé (3 slides) au premier lancement
+• Journal des mises à jour dans les réglages
+• Synthèse PDF avec aperçu, zoom et orientation paysage
+• Nouvelle palette terrain (bleu secours, sans violet)
+• Couleurs métier plus lisibles pour les mesures
+
+Merci de signaler les bugs et retours terrain.
+```
+
 ## Notes de version (0.2.1 bêta)
 
 ```
 Version bêta 0.2.1 — test fermé.
 
-• Aide-mémoire : éditeur enrichi (gras, italique, listes, liens), sauvegarde automatique, recherche corrigée
-• Interface : barre de navigation transparente avec flou (navigation 3 boutons)
-• Notes d'intervention : bouton Récap en fin de formulaire (plus de barre fixe en bas)
+• Photos d’intervention locales
+• Profil secouriste pour les exports PDF
+• Synthèse PDF peaufinée
 • Corrections et améliorations diverses
-
-Merci de signaler les bugs via [email ou formulaire à compléter].
 ```
 
 ## Notes de version (exemple 0.1.0 bêta)

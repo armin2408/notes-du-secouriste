@@ -1,19 +1,29 @@
 package com.notesdusecouriste.feature.interventionnotes.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.AddAPhoto
+import androidx.compose.material.icons.outlined.PictureAsPdf
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -26,7 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.notesdusecouriste.core.ui.systembars.navigationBarBottomPadding
+import com.notesdusecouriste.core.data.model.hasExportableNoteData
 import com.notesdusecouriste.core.ui.systembars.scaffoldContentWithoutNavigationBar
 import com.notesdusecouriste.feature.interventionnotes.R
 
@@ -41,12 +51,15 @@ fun InterventionNotesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val canOpenSynthesis = uiState.content.hasExportableNoteData() || uiState.photos.isNotEmpty()
 
     LaunchedEffect(uiState.errorMessage) {
         val message = uiState.errorMessage ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
         viewModel.clearErrorMessage()
     }
+
+    InterventionPhotosHost(viewModel = viewModel, uiState = uiState)
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -75,17 +88,59 @@ fun InterventionNotesScreen(
                 ),
             )
         },
+        bottomBar = {
+            Surface(
+                tonalElevation = 3.dp,
+                shadowElevation = 4.dp,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = viewModel::onAddPhotoClicked,
+                        enabled = !uiState.isImportingPhoto,
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 48.dp),
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.AddAPhoto,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                        Text(stringResource(R.string.action_photo))
+                    }
+                    Button(
+                        onClick = onRecap,
+                        enabled = canOpenSynthesis,
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 48.dp),
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.PictureAsPdf,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                        Text(stringResource(R.string.action_recap))
+                    }
+                }
+            }
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         InterventionNotesListContent(
             viewModel = viewModel,
-            onRecap = onRecap,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(
-                bottom = navigationBarBottomPadding(extra = 16.dp),
-            ),
+            contentPadding = PaddingValues(bottom = 16.dp),
         )
     }
 }

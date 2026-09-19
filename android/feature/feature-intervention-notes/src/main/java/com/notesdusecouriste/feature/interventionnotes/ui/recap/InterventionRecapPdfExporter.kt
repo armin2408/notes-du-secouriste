@@ -36,22 +36,22 @@ object InterventionRecapPdfExporter {
     private const val IconDrawSizeSmall = 11f
     private const val IconRasterSizeSmall = 72
 
-    private val ColorInk = 0xFF1C1B1F.toInt()
-    private val ColorMuted = 0xFF5C5C5C.toInt()
+    private val ColorInk = 0xFF18212B.toInt()
+    private val ColorMuted = 0xFF5B6875.toInt()
     private val ColorAccent = 0xFF1565C0.toInt()
-    private val ColorCardBg = 0xFFF7F8FA.toInt()
+    private val ColorCardBg = 0xFFF3F6F9.toInt()
     private val ColorCardWhite = 0xFFFFFFFF.toInt()
-    private val ColorCardStroke = 0xFFDDE1E6.toInt()
+    private val ColorCardStroke = 0xFFDDE4EA.toInt()
     private val ColorSecouristeStroke = 0xFF90CAF9.toInt()
     private val ColorPageBg = 0xFFFFFFFF.toInt()
-    private val ColorHeaderBg = 0xFFEEF3F9.toInt()
-    private val ColorGrid = 0xFFE0E0E0.toInt()
-    private val ColorGreenBg = 0xFFC8E6C9.toInt()
-    private val ColorGreenFg = 0xFF1B5E20.toInt()
-    private val ColorYellowBg = 0xFFFFF3C4.toInt()
-    private val ColorYellowFg = 0xFF5D4037.toInt()
-    private val ColorOrangeBg = 0xFFFFE0B2.toInt()
-    private val ColorOrangeFg = 0xFFE65100.toInt()
+    private val ColorHeaderBg = 0xFFEEF3F8.toInt()
+    private val ColorGrid = 0xFFCBD4DD.toInt()
+    private val ColorGreenBg = 0xFFDDF3E2.toInt()
+    private val ColorGreenFg = 0xFF1E6B35.toInt()
+    private val ColorYellowBg = 0xFFFFF1C2.toInt()
+    private val ColorYellowFg = 0xFF765A00.toInt()
+    private val ColorOrangeBg = 0xFFFFE0C2.toInt()
+    private val ColorOrangeFg = 0xFFA94D00.toInt()
 
     fun export(
         context: Context,

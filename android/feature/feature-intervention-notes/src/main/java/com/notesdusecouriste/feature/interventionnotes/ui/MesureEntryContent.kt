@@ -26,8 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.notesdusecouriste.core.data.model.MesureEntry
 import com.notesdusecouriste.core.data.model.GlycemieUnit
-import com.notesdusecouriste.core.ui.theme.TemperatureOkGreen
-import com.notesdusecouriste.core.ui.theme.TemperatureWarnOrange
+import com.notesdusecouriste.core.ui.theme.LocalNotesSemanticColors
 import com.notesdusecouriste.feature.interventionnotes.R
 import com.notesdusecouriste.feature.interventionnotes.ui.components.BoldLabelField
 import com.notesdusecouriste.feature.interventionnotes.ui.components.ChoiceChipGroup
@@ -377,11 +376,12 @@ private fun TemperatureField(
     val valid = isTemperatureInputValid(value)
     val parsed = parseTemperatureC(value)
     val isNormal = parsed?.let { it >= 37.0 && it < 38.0 }
+    val semantic = LocalNotesSemanticColors.current
 
     val borderColor: Color? = when {
         value.isBlank() || !valid || parsed == null -> null
-        isNormal == true -> TemperatureOkGreen
-        else -> TemperatureWarnOrange
+        isNormal == true -> semantic.normalOnContainer
+        else -> semantic.alertOnContainer
     }
 
     val colors = if (borderColor != null) {

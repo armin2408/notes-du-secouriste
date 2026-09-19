@@ -8,7 +8,9 @@ import com.notesdusecouriste.core.data.model.Intervention
 import com.notesdusecouriste.core.data.model.InterventionNoteContent
 import com.notesdusecouriste.core.data.model.InterventionStatus
 import com.notesdusecouriste.core.data.model.NotesSectionsCodec
+import com.notesdusecouriste.core.data.model.hasExportableNoteData
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,14 +22,29 @@ class InterventionRepository @Inject constructor(
 ) {
     private val interventionDao = database.interventionDao()
     private val notesDao = database.interventionNotesDao()
+    private val photoDao = database.interventionPhotoDao()
 
     fun observeInterventions(): Flow<List<Intervention>> =
-        interventionDao.observeAll().map { list ->
-            list.map { it.toDomain() }
+        combine(
+            interventionDao.observeAll(),
+            notesDao.observeAll(),
+            photoDao.observeAllInterventionIds(),
+        ) { interventions, notes, photoInterventionIds ->
+            val notesById = notes.associateBy { it.interventionId }
+            val withPhotos = photoInterventionIds.toSet()
+            interventions.map { entity ->
+                val content = notesById[entity.id]
+                    ?.let { NotesSectionsCodec.decode(it.sectionsJson) }
+                    ?: InterventionNoteContent()
+                entity.toDomain(
+                    hasSynthesisContent = content.hasExportableNoteData() ||
+                        entity.id in withPhotos,
+                )
+            }
         }
 
     suspend fun getIntervention(id: Long): Intervention? =
-        interventionDao.getById(id)?.toDomain()
+        interventionDao.getById(id)?.toDomain(hasSynthesisContent = false)
 
     fun observeNoteContent(interventionId: Long): Flow<InterventionNoteContent> =
         notesDao.observeByInterventionId(interventionId).map { entity ->
@@ -90,7 +107,7 @@ class InterventionRepository @Inject constructor(
         return newId
     }
 
-    private fun InterventionEntity.toDomain(): Intervention =
+    private fun InterventionEntity.toDomain(hasSynthesisContent: Boolean): Intervention =
         Intervention(
             id = id,
             startedAtEpochMillis = startedAtEpochMillis,
@@ -99,5 +116,6 @@ class InterventionRepository @Inject constructor(
             nom = nom,
             prenom = prenom,
             age = age,
+            hasSynthesisContent = hasSynthesisContent,
         )
 }

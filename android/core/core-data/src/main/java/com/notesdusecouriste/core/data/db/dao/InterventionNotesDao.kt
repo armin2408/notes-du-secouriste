@@ -18,6 +18,9 @@ interface InterventionNotesDao {
     @Query("SELECT * FROM intervention_notes WHERE interventionId = :interventionId")
     suspend fun getByInterventionId(interventionId: Long): InterventionNotesEntity?
 
+    @Query("SELECT * FROM intervention_notes")
+    fun observeAll(): Flow<List<InterventionNotesEntity>>
+
     @Query("DELETE FROM intervention_notes WHERE interventionId = :interventionId")
     suspend fun deleteByInterventionId(interventionId: Long)
 

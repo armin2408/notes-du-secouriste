@@ -24,8 +24,8 @@ android {
         applicationId = "com.notesdusecouriste.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.2.1-beta"
+        versionCode = 6
+        versionName = "0.3.0-beta"
     }
 
     signingConfigs {
@@ -106,6 +106,7 @@ dependencies {
     implementation(project(":core:core-ui"))
     implementation(project(":feature:feature-intervention-notes"))
     implementation(project(":feature:feature-aide-memoire"))
+    implementation(project(":feature:feature-onboarding"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

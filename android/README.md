@@ -1,6 +1,6 @@
 # NOTES DU SECOURISTE — Application Android
 
-**Version :** `0.2.1-beta` (versionCode 5) · minSdk 26 · targetSdk 35 · compileSdk 37
+**Version :** `0.3.0-beta` (versionCode 6) · minSdk 26 · targetSdk 35 · compileSdk 37
 
 ## Prérequis
 
@@ -45,7 +45,7 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 
 L’app **Notes du Secouriste** s’installe et se lance.
 
-## Parcours testable (état code 0.2.1-beta)
+## Parcours testable (état code 0.3.0-beta)
 
 ### Accueil (Epic 1)
 
@@ -69,11 +69,11 @@ L’app **Notes du Secouriste** s’installe et se lance.
 - En-têtes **sticky** empilés (Mesures + onglets + sous-sections)
 - Bouton **Récap** en **fin de liste** (pas de barre fixe en bas)
 
-### Récap (Epic 4 partiel)
+### Synthèse PDF (Epic 4 partiel)
 
-- Écran lecture seule depuis les notes ou l’accueil
-- Synthèse type tableau (relevés multi-colonnes) + questionnaires
-- **Pas encore** : Script de transmission, Clôture lecture seule, export PDF d’intervention
+- Aperçu PDF depuis les notes ou l’accueil (zoom, paysage, partage)
+- Contenu : victime, mesures, questionnaires, profil secouriste, photos
+- **Pas encore** : Script de transmission, Clôture lecture seule
 
 ### Aide-mémoire (Epic 6)
 

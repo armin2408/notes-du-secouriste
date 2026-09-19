@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Summarize
+import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -99,6 +99,7 @@ fun InterventionListItem(
 ) {
     val recapDescription = stringResource(R.string.content_description_open_recap)
     val deleteDescription = stringResource(R.string.content_description_delete_intervention)
+    val canOpenSynthesis = intervention.hasSynthesisContent
 
     ListItem(
         modifier = modifier
@@ -146,12 +147,17 @@ fun InterventionListItem(
                 Row {
                     IconButton(
                         onClick = onOpenRecap,
+                        enabled = canOpenSynthesis,
                         modifier = Modifier.size(48.dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Summarize,
+                            imageVector = Icons.Outlined.PictureAsPdf,
                             contentDescription = recapDescription,
-                            tint = MaterialTheme.colorScheme.secondary,
+                            tint = if (canOpenSynthesis) {
+                                MaterialTheme.colorScheme.secondary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            },
                         )
                     }
                     IconButton(
