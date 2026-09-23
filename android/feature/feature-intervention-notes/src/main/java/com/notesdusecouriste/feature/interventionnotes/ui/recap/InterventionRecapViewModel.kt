@@ -1,8 +1,13 @@
 package com.notesdusecouriste.feature.interventionnotes.ui.recap
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -30,6 +35,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 data class InterventionRecapUiState(
@@ -45,6 +52,7 @@ data class InterventionRecapUiState(
 
 sealed interface RecapExportEvent {
     data class SharePdf(val uri: Uri) : RecapExportEvent
+    data class SavedToDownloads(val message: String) : RecapExportEvent
     data class Error(val message: String) : RecapExportEvent
 }
 
@@ -177,6 +185,9 @@ class InterventionRecapViewModel @Inject constructor(
                     pdfLandscape.value = needsLandscape
                     needsLandscape
                 }
+                val createdAtEpochMillis = repository.getIntervention(interventionId)
+                    ?.startedAtEpochMillis
+                    ?: System.currentTimeMillis()
                 val file = withContext(Dispatchers.IO) {
                     InterventionRecapPdfExporter.export(
                         context = context,
@@ -185,6 +196,7 @@ class InterventionRecapViewModel @Inject constructor(
                         profile = profile,
                         photoFiles = photoFiles,
                         landscape = landscape,
+                        createdAtEpochMillis = createdAtEpochMillis,
                     )
                 }
                 pdfPreviewFile.value = file
@@ -219,6 +231,26 @@ class InterventionRecapViewModel @Inject constructor(
         }
     }
 
+    fun downloadPdfPreview() {
+        val file = pdfPreviewFile.value ?: return
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { savePdfToDownloads(context, file) }
+                _exportEvents.emit(
+                    RecapExportEvent.SavedToDownloads(
+                        context.getString(R.string.recap_download_pdf_success),
+                    ),
+                )
+            } catch (_: Exception) {
+                _exportEvents.emit(
+                    RecapExportEvent.Error(
+                        context.getString(R.string.recap_download_pdf_error),
+                    ),
+                )
+            }
+        }
+    }
+
     companion object {
         fun sharePdfIntent(uri: Uri): Intent =
             Intent(Intent.ACTION_SEND).apply {
@@ -229,5 +261,40 @@ class InterventionRecapViewModel @Inject constructor(
 
         private fun contentFingerprint(state: InterventionRecapUiState): String =
             "${state.recap}|${state.photoCount}|${state.headerTitle}"
+
+        private fun savePdfToDownloads(context: Context, source: File) {
+            val displayName = source.name.ifBlank { "recap.pdf" }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+                val resolver = context.contentResolver
+                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                    ?: error("insert Downloads failed")
+                resolver.openOutputStream(uri)?.use { out ->
+                    FileInputStream(source).use { input -> input.copyTo(out) }
+                } ?: error("openOutputStream failed")
+                values.clear()
+                values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                resolver.update(uri, values, null, null)
+            } else {
+                @Suppress("DEPRECATION")
+                val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                if (!dir.exists()) dir.mkdirs()
+                val dest = File(dir, displayName)
+                FileInputStream(source).use { input ->
+                    FileOutputStream(dest).use { output -> input.copyTo(output) }
+                }
+                MediaScannerConnection.scanFile(
+                    context,
+                    arrayOf(dest.absolutePath),
+                    arrayOf("application/pdf"),
+                    null,
+                )
+            }
+        }
     }
 }

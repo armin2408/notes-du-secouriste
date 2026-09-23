@@ -4,41 +4,42 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-// —— Identité terrain (primary) ——
-val AccentBlue = Color(0xFF1565C0)
-val SecondaryBlue = AccentBlue
+// —— Identité terrain (primary) — vert logo #02A459 ——
+val AccentGreen = Color(0xFF02A459)
+val AccentBlue = AccentGreen // alias historique
+val SecondaryBlue = AccentGreen
 
 // —— Palette claire ——
-val TerrainPrimary = Color(0xFF1565C0)
+val TerrainPrimary = Color(0xFF02A459)
 val TerrainOnPrimary = Color(0xFFFFFFFF)
-val TerrainPrimaryContainer = Color(0xFFE3F0FF)
-val TerrainOnPrimaryContainer = Color(0xFF0D3A6E)
+val TerrainPrimaryContainer = Color(0xFFD4F5E4)
+val TerrainOnPrimaryContainer = Color(0xFF003D22)
 
-val TerrainSecondary = Color(0xFF4E667A)
+val TerrainSecondary = Color(0xFF4A6358)
 val TerrainOnSecondary = Color(0xFFFFFFFF)
-val TerrainSecondaryContainer = Color(0xFFE7EEF5)
-val TerrainOnSecondaryContainer = Color(0xFF263746)
+val TerrainSecondaryContainer = Color(0xFFE4EFE8)
+val TerrainOnSecondaryContainer = Color(0xFF25362E)
 
-val TerrainTertiary = Color(0xFF3F6F6A)
+val TerrainTertiary = Color(0xFF3B6B52)
 val TerrainOnTertiary = Color(0xFFFFFFFF)
-val TerrainTertiaryContainer = Color(0xFFDCEFEB)
-val TerrainOnTertiaryContainer = Color(0xFF173E3A)
+val TerrainTertiaryContainer = Color(0xFFD6F0E2)
+val TerrainOnTertiaryContainer = Color(0xFF143528)
 
-val TerrainBackground = Color(0xFFF6F8FB)
-val TerrainOnBackground = Color(0xFF18212B)
+val TerrainBackground = Color(0xFFF5F9F6)
+val TerrainOnBackground = Color(0xFF15201A)
 val TerrainSurface = Color(0xFFFFFFFF)
-val TerrainOnSurface = Color(0xFF18212B)
-val TerrainSurfaceVariant = Color(0xFFEEF3F8)
-val TerrainOnSurfaceVariant = Color(0xFF5B6875)
+val TerrainOnSurface = Color(0xFF15201A)
+val TerrainSurfaceVariant = Color(0xFFEAF3EE)
+val TerrainOnSurfaceVariant = Color(0xFF556B5E)
 
 val TerrainSurfaceContainerLowest = Color(0xFFFFFFFF)
-val TerrainSurfaceContainerLow = Color(0xFFF3F6F9)
-val TerrainSurfaceContainer = Color(0xFFEEF3F8)
-val TerrainSurfaceContainerHigh = Color(0xFFE7EDF3)
-val TerrainSurfaceContainerHighest = Color(0xFFE0E7EE)
+val TerrainSurfaceContainerLow = Color(0xFFF1F7F3)
+val TerrainSurfaceContainer = Color(0xFFEAF3EE)
+val TerrainSurfaceContainerHigh = Color(0xFFE2EEE7)
+val TerrainSurfaceContainerHighest = Color(0xFFD9E8DF)
 
-val TerrainOutline = Color(0xFFCBD4DD)
-val TerrainOutlineVariant = Color(0xFFDDE4EA)
+val TerrainOutline = Color(0xFFC5D4CB)
+val TerrainOutlineVariant = Color(0xFFD8E5DC)
 
 val TerrainError = Color(0xFFB3261E)
 val TerrainOnError = Color(0xFFFFFFFF)
@@ -46,36 +47,36 @@ val TerrainErrorContainer = Color(0xFFFFE0E0)
 val TerrainOnErrorContainer = Color(0xFF7A1A16)
 
 // —— Palette sombre ——
-val TerrainDarkBackground = Color(0xFF101418)
-val TerrainDarkOnBackground = Color(0xFFE7EDF3)
-val TerrainDarkSurface = Color(0xFF161B21)
-val TerrainDarkOnSurface = Color(0xFFE7EDF3)
-val TerrainDarkSurfaceVariant = Color(0xFF202832)
-val TerrainDarkOnSurfaceVariant = Color(0xFFAEB9C5)
+val TerrainDarkBackground = Color(0xFF0F1412)
+val TerrainDarkOnBackground = Color(0xFFE6EDE8)
+val TerrainDarkSurface = Color(0xFF151C18)
+val TerrainDarkOnSurface = Color(0xFFE6EDE8)
+val TerrainDarkSurfaceVariant = Color(0xFF1E2A23)
+val TerrainDarkOnSurfaceVariant = Color(0xFFA8B9AF)
 
-val TerrainDarkSurfaceContainerLowest = Color(0xFF0C1014)
-val TerrainDarkSurfaceContainerLow = Color(0xFF1B2128)
-val TerrainDarkSurfaceContainer = Color(0xFF202832)
-val TerrainDarkSurfaceContainerHigh = Color(0xFF2A333E)
-val TerrainDarkSurfaceContainerHighest = Color(0xFF343E4A)
+val TerrainDarkSurfaceContainerLowest = Color(0xFF0B100E)
+val TerrainDarkSurfaceContainerLow = Color(0xFF1A221D)
+val TerrainDarkSurfaceContainer = Color(0xFF1E2A23)
+val TerrainDarkSurfaceContainerHigh = Color(0xFF28352D)
+val TerrainDarkSurfaceContainerHighest = Color(0xFF324038)
 
-val TerrainDarkPrimary = Color(0xFF7EB8FF)
-val TerrainDarkOnPrimary = Color(0xFF00325A)
-val TerrainDarkPrimaryContainer = Color(0xFF0F3D67)
-val TerrainDarkOnPrimaryContainer = Color(0xFFD7E9FF)
+val TerrainDarkPrimary = Color(0xFF6BD9A0)
+val TerrainDarkOnPrimary = Color(0xFF003D22)
+val TerrainDarkPrimaryContainer = Color(0xFF005C35)
+val TerrainDarkOnPrimaryContainer = Color(0xFFD4F5E4)
 
-val TerrainDarkSecondary = Color(0xFFA7BACB)
-val TerrainDarkOnSecondary = Color(0xFF17303F)
-val TerrainDarkSecondaryContainer = Color(0xFF2A3946)
-val TerrainDarkOnSecondaryContainer = Color(0xFFD7E3ED)
+val TerrainDarkSecondary = Color(0xFFA8C0B3)
+val TerrainDarkOnSecondary = Color(0xFF173028)
+val TerrainDarkSecondaryContainer = Color(0xFF2A3B33)
+val TerrainDarkOnSecondaryContainer = Color(0xFFD5E7DC)
 
-val TerrainDarkTertiary = Color(0xFF8FC9C1)
-val TerrainDarkOnTertiary = Color(0xFF00382F)
-val TerrainDarkTertiaryContainer = Color(0xFF264943)
-val TerrainDarkOnTertiaryContainer = Color(0xFFB8EAE3)
+val TerrainDarkTertiary = Color(0xFF8FD0B0)
+val TerrainDarkOnTertiary = Color(0xFF003825)
+val TerrainDarkTertiaryContainer = Color(0xFF264A38)
+val TerrainDarkOnTertiaryContainer = Color(0xFFB8EAD3)
 
-val TerrainDarkOutline = Color(0xFF6F7B86)
-val TerrainDarkOutlineVariant = Color(0xFF3D4852)
+val TerrainDarkOutline = Color(0xFF6F8177)
+val TerrainDarkOutlineVariant = Color(0xFF3D4C43)
 
 val TerrainDarkError = Color(0xFFFFB4AB)
 val TerrainDarkOnError = Color(0xFF690005)
@@ -83,8 +84,8 @@ val TerrainDarkErrorContainer = Color(0xFF93000A)
 val TerrainDarkOnErrorContainer = Color(0xFFFFDAD6)
 
 // —— Couleurs métier / mesures (clair) ——
-val MeasureNormalContainer = Color(0xFFDDF3E2)
-val MeasureNormalOnContainer = Color(0xFF1E6B35)
+val MeasureNormalContainer = Color(0xFFD4F5E4)
+val MeasureNormalOnContainer = Color(0xFF017A44)
 val MeasureWatchContainer = Color(0xFFFFF1C2)
 val MeasureWatchOnContainer = Color(0xFF765A00)
 val MeasureAlertContainer = Color(0xFFFFE0C2)
@@ -93,8 +94,8 @@ val MeasureCriticalContainer = Color(0xFFFFE0E0)
 val MeasureCriticalOnContainer = Color(0xFFB3261E)
 
 // —— Couleurs métier / mesures (sombre) ——
-val MeasureNormalContainerDark = Color(0xFF173C27)
-val MeasureNormalOnContainerDark = Color(0xFF9BD8AE)
+val MeasureNormalContainerDark = Color(0xFF0F3D27)
+val MeasureNormalOnContainerDark = Color(0xFF6BD9A0)
 val MeasureWatchContainerDark = Color(0xFF473A10)
 val MeasureWatchOnContainerDark = Color(0xFFF6D86B)
 val MeasureAlertContainerDark = Color(0xFF4A2B13)
@@ -117,7 +118,7 @@ val AlertWarning = MeasureWatchOnContainer
 val AlertCritical = MeasureCriticalOnContainer
 val PrimaryRed = TerrainError
 
-val StatusDraft = Color(0xFF42A5F5)
+val StatusDraft = Color(0xFF02A459)
 val StatusClosed = TerrainSecondary
 
 val BackgroundLight = TerrainBackground

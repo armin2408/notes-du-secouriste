@@ -163,13 +163,52 @@ data class OpqrstQuestionnaire(
     val temps: String = "",
 )
 
+/** True si l’entrée contient au moins une valeur de mesure (hors horodatage). */
+fun MesureEntry.hasExportableData(): Boolean {
+    val r = respiration
+    if (listOf(r.frequenceBpm, r.amplitude, r.regularite, r.aspect, r.saturationPct)
+            .any { it.isNotBlank() }
+    ) {
+        return true
+    }
+    val c = circulation.withMigratedTension()
+    if (listOf(
+            c.frequenceBpm, c.amplitude, c.regularite, c.aspect,
+            c.tensionSys, c.tensionDia, c.trc,
+        ).any { it.isNotBlank() }
+    ) {
+        return true
+    }
+    val n = conscience
+    if (listOf(
+            n.conscience, n.orientationTemps, n.orientationEspace,
+            n.propos, n.temperatureC, n.glycemie,
+        ).any { it.isNotBlank() }
+    ) {
+        return true
+    }
+    val g = glasgow
+    if (listOf(g.ouvertureYeux, g.reponseVerbale, g.reponseMotrice).any { it.isNotBlank() }) {
+        return true
+    }
+    val a = suspicionAvc
+    if (listOf(
+            a.visage, a.pupillesEgales, a.pupillesReactives,
+            a.motriciteBras, a.parole, a.heureSymptomes,
+        ).any { it.isNotBlank() }
+    ) {
+        return true
+    }
+    return false
+}
+
 /** Données exploitables pour une synthèse / PDF (hors photos). */
 fun InterventionNoteContent.hasExportableNoteData(): Boolean {
     val v = victime
     if (listOf(v.nom, v.prenom, v.dateNaissance, v.age, v.coordonnees).any { it.isNotBlank() }) {
         return true
     }
-    if (mesures.entries.isNotEmpty()) return true
+    if (mesures.entries.any { it.hasExportableData() }) return true
     val s = questionnaires.sample
     if (listOf(
             s.signesSymptomes, s.allergies, s.medicaments,

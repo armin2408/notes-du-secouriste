@@ -11,8 +11,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,14 +50,17 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Scaffold
@@ -68,6 +73,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -178,7 +184,7 @@ private fun AideMemoireSearchBar(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AideMemoirePlaceholderScreen(
     onBack: () -> Unit,
@@ -207,6 +213,11 @@ fun AideMemoirePlaceholderScreen(
 
     var createDialogOpen by remember { mutableStateOf(false) }
     var newTabTitle by remember { mutableStateOf("") }
+
+    var tabActionsTarget by remember { mutableStateOf<AideMemoireTabConfig?>(null) }
+    var renameTabTarget by remember { mutableStateOf<AideMemoireTabConfig?>(null) }
+    var renameTabDraft by remember { mutableStateOf("") }
+    var deleteConfirmTab by remember { mutableStateOf<AideMemoireTabConfig?>(null) }
 
     var searchMode by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -570,6 +581,10 @@ fun AideMemoirePlaceholderScreen(
                                 selected = selectedTabIndex == index,
                                 onClick = { selectedTabId = tab.id },
                                 text = { Text(tab.title) },
+                                modifier = Modifier.combinedClickable(
+                                    onClick = { selectedTabId = tab.id },
+                                    onLongClick = { tabActionsTarget = tab },
+                                ),
                             )
                         }
                         // Texte seul (pas icon+text) : même hauteur que les autres onglets (48dp).
@@ -635,6 +650,55 @@ fun AideMemoirePlaceholderScreen(
                 val safeTitle = newTabTitle.trim().ifBlank { "Nouvel onglet" }
                 scope.launch { repository.createBlankMarkdown(title = safeTitle) }
                 createDialogOpen = false
+            },
+        )
+    }
+
+    tabActionsTarget?.let { target ->
+        AideMemoireTabActionsSheet(
+            tab = target,
+            onDismiss = { tabActionsTarget = null },
+            onRename = {
+                tabActionsTarget = null
+                renameTabDraft = target.title
+                renameTabTarget = target
+            },
+            onMove = {
+                tabActionsTarget = null
+                manageScreenOpen = true
+            },
+            onDelete = {
+                tabActionsTarget = null
+                deleteConfirmTab = target
+            },
+        )
+    }
+
+    renameTabTarget?.let { target ->
+        RenameTabDialog(
+            title = renameTabDraft,
+            onTitleChange = { renameTabDraft = it },
+            onDismiss = { renameTabTarget = null },
+            onConfirm = {
+                val safeTitle = normalizeAideMemoireTabTitle(renameTabDraft)
+                scope.launch { repository.updateTitle(target.id, safeTitle) }
+                renameTabTarget = null
+            },
+        )
+    }
+
+    deleteConfirmTab?.let { target ->
+        DeleteTabConfirmDialog(
+            tabTitle = target.title,
+            onDismiss = { deleteConfirmTab = null },
+            onConfirm = {
+                scope.launch {
+                    repository.deleteCustom(target.id)
+                    if (selectedTabId == target.id) {
+                        selectedTabId = null
+                    }
+                }
+                deleteConfirmTab = null
             },
         )
     }
@@ -1130,6 +1194,7 @@ private fun ManageTabsScreen(
     var dragAccumulated by remember { mutableStateOf(0f) }
     val rowHeight: Dp = 72.dp
     val rowHeightPx = with(LocalDensity.current) { rowHeight.toPx() }.coerceAtLeast(1f)
+    var pendingDeleteTab by remember { mutableStateOf<AideMemoireTabConfig?>(null) }
 
     Scaffold(
         topBar = {
@@ -1206,10 +1271,21 @@ private fun ManageTabsScreen(
                     },
                     onToggleVisible = { onToggleVisible(tab.id) },
                     onDuplicate = { onDuplicate(tab.id) },
-                    onDelete = { onDelete(tab.id) },
+                    onDelete = { pendingDeleteTab = tab },
                 )
             }
         }
+    }
+
+    pendingDeleteTab?.let { target ->
+        DeleteTabConfirmDialog(
+            tabTitle = target.title,
+            onDismiss = { pendingDeleteTab = null },
+            onConfirm = {
+                onDelete(target.id)
+                pendingDeleteTab = null
+            },
+        )
     }
 }
 
@@ -1402,5 +1478,129 @@ private fun CreateTabDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Annuler") }
         },
+    )
+}
+
+@Composable
+private fun RenameTabDialog(
+    title: String,
+    onTitleChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Renommer l’onglet") },
+        text = {
+            OutlinedTextField(
+                value = title,
+                onValueChange = onTitleChange,
+                label = { Text("Titre") },
+                singleLine = true,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text("Enregistrer") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Annuler") }
+        },
+    )
+}
+
+@Composable
+private fun DeleteTabConfirmDialog(
+    tabTitle: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Supprimer l’onglet ?") },
+        text = {
+            Text("« $tabTitle » sera supprimé définitivement.")
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error,
+                ),
+            ) {
+                Text("Supprimer")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Annuler") }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AideMemoireTabActionsSheet(
+    tab: AideMemoireTabConfig,
+    onDismiss: () -> Unit,
+    onRename: () -> Unit,
+    onMove: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp),
+        ) {
+            Text(
+                text = tab.title,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            AideMemoireTabActionRow(
+                label = "Renommer",
+                onClick = onRename,
+                enabled = !tab.isDefault,
+            )
+            HorizontalDivider()
+            AideMemoireTabActionRow(label = "Déplacer", onClick = onMove)
+            HorizontalDivider()
+            AideMemoireTabActionRow(
+                label = "Supprimer",
+                onClick = onDelete,
+                isDestructive = true,
+                enabled = !tab.isDefault,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AideMemoireTabActionRow(
+    label: String,
+    onClick: () -> Unit,
+    isDestructive: Boolean = false,
+    enabled: Boolean = true,
+) {
+    val color = when {
+        !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+        isDestructive -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    Text(
+        text = label,
+        style = MaterialTheme.typography.bodyLarge,
+        color = color,
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (enabled) Modifier.clickable(onClick = onClick)
+                else Modifier,
+            )
+            .padding(horizontal = 24.dp, vertical = 16.dp),
     )
 }

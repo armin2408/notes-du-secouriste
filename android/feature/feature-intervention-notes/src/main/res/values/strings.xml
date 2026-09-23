@@ -81,11 +81,16 @@
     <string name="recap_export_pdf">Exporter en PDF</string>
     <string name="recap_pdf_preview_title">Aperçu PDF</string>
     <string name="recap_share_pdf">Partager</string>
+    <string name="recap_download_pdf">Télécharger</string>
+    <string name="recap_download_pdf_success">PDF enregistré dans Téléchargements</string>
+    <string name="recap_download_pdf_error">Impossible d’enregistrer le PDF.</string>
     <string name="recap_pdf_page">Page %1$d</string>
     <string name="recap_export_pdf_error">Impossible de générer le PDF.</string>
     <string name="recap_export_pdf_empty">Aucune donnée à exporter.</string>
     <string name="pdf_document_title">Notes du Secouriste</string>
-    <string name="pdf_generated_at">Généré le %1$s</string>
+    <string name="pdf_note_created_at">Note créée le %1$s à %2$s</string>
+    <string name="pdf_section_informations">Informations</string>
+    <string name="pdf_generated_at">Édité le %1$s</string>
     <string name="pdf_section_secouriste">SECOURISTE</string>
     <string name="pdf_profile_empty">Profil non renseigné dans les Réglages → "Mon profil secouriste" (facultatif)</string>
     <string name="pdf_label_name">Prénom NOM</string>

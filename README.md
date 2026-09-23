@@ -100,7 +100,7 @@ Plusieurs relevés par intervention : chaque onglet correspond à un **horaire**
 
 ### Interface
 - Material 3 Expressive
-- Palette **terrain** (bleu `#1565C0`, sans violet)
+- Palette **terrain** (vert `#02A459`, sans violet)
 - Clair / sombre, edge-to-edge, barre de navigation floutée (3 boutons)
 
 ---

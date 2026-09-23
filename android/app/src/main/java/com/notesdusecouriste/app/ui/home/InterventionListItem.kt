@@ -185,7 +185,7 @@ private fun formatIdentityLine(intervention: Intervention): String =
         age = intervention.age,
     ).let { line ->
         if (line == "Nouvelle note") {
-            "Intervention en cours"
+            "Nouvelle intervention"
         } else {
             line
         }

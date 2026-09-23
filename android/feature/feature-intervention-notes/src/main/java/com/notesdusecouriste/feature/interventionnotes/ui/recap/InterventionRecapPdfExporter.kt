@@ -1,16 +1,24 @@
 package com.notesdusecouriste.feature.interventionnotes.ui.recap
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.BitmapShader
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.text.TextPaint
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.notesdusecouriste.core.data.photos.InterventionPhotoStore
 import com.notesdusecouriste.core.data.preferences.SecouristeProfile
 import com.notesdusecouriste.core.ui.legal.DisclaimerResources
 import com.notesdusecouriste.feature.interventionnotes.R
 import com.notesdusecouriste.feature.interventionnotes.ui.components.NoteSectionKind
+import com.notesdusecouriste.feature.interventionnotes.ui.components.icon
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -35,19 +43,21 @@ object InterventionRecapPdfExporter {
     private const val IconRasterSize = 96
     private const val IconDrawSizeSmall = 11f
     private const val IconRasterSizeSmall = 72
+    private const val LogoDrawSize = 36f
+    private const val LogoCornerRatio = 0.22f
 
-    private val ColorInk = 0xFF18212B.toInt()
-    private val ColorMuted = 0xFF5B6875.toInt()
-    private val ColorAccent = 0xFF1565C0.toInt()
-    private val ColorCardBg = 0xFFF3F6F9.toInt()
+    private val ColorInk = 0xFF15201A.toInt()
+    private val ColorMuted = 0xFF556B5E.toInt()
+    private val ColorAccent = 0xFF02A459.toInt()
+    private val ColorCardBg = 0xFFF1F7F3.toInt()
     private val ColorCardWhite = 0xFFFFFFFF.toInt()
-    private val ColorCardStroke = 0xFFDDE4EA.toInt()
-    private val ColorSecouristeStroke = 0xFF90CAF9.toInt()
+    private val ColorCardStroke = 0xFFD8E5DC.toInt()
+    private val ColorSecouristeStroke = 0xFF7BC99A.toInt()
     private val ColorPageBg = 0xFFFFFFFF.toInt()
-    private val ColorHeaderBg = 0xFFEEF3F8.toInt()
-    private val ColorGrid = 0xFFCBD4DD.toInt()
-    private val ColorGreenBg = 0xFFDDF3E2.toInt()
-    private val ColorGreenFg = 0xFF1E6B35.toInt()
+    private val ColorHeaderBg = 0xFFEAF3EE.toInt()
+    private val ColorGrid = 0xFFC5D4CB.toInt()
+    private val ColorGreenBg = 0xFFD4F5E4.toInt()
+    private val ColorGreenFg = 0xFF017A44.toInt()
     private val ColorYellowBg = 0xFFFFF1C2.toInt()
     private val ColorYellowFg = 0xFF765A00.toInt()
     private val ColorOrangeBg = 0xFFFFE0C2.toInt()
@@ -60,6 +70,7 @@ object InterventionRecapPdfExporter {
         profile: SecouristeProfile,
         photoFiles: List<File> = emptyList(),
         landscape: Boolean = false,
+        createdAtEpochMillis: Long = System.currentTimeMillis(),
     ): File {
         val stamp = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.FRANCE).format(Date())
         val fileStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.FRANCE).format(Date())
@@ -70,6 +81,7 @@ object InterventionRecapPdfExporter {
             photoFiles = photoFiles,
             landscape = landscape,
             stamp = stamp,
+            createdAtEpochMillis = createdAtEpochMillis,
             dryRun = true,
             totalPagesHint = 1,
         ).run()
@@ -82,6 +94,7 @@ object InterventionRecapPdfExporter {
             photoFiles = photoFiles,
             landscape = landscape,
             stamp = stamp,
+            createdAtEpochMillis = createdAtEpochMillis,
             dryRun = false,
             totalPagesHint = totalPages,
             document = document,
@@ -148,6 +161,7 @@ object InterventionRecapPdfExporter {
         private val photoFiles: List<File>,
         private val landscape: Boolean,
         private val stamp: String,
+        private val createdAtEpochMillis: Long,
         private val dryRun: Boolean,
         private val totalPagesHint: Int,
         private val document: PdfDocument? = null,
@@ -194,6 +208,11 @@ object InterventionRecapPdfExporter {
         private val mutedPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = Typeface.DEFAULT
             textSize = 8f
+            color = ColorMuted
+        }
+        private val subtitlePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = Typeface.DEFAULT
+            textSize = 9f
             color = ColorMuted
         }
         private val cellPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -299,22 +318,81 @@ object InterventionRecapPdfExporter {
         }
 
         private fun drawIcon(kind: NoteSectionKind, x: Float, top: Float, drawSize: Float, rasterSize: Int) {
+            drawIcon(kind.icon(), x, top, drawSize, rasterSize)
+        }
+
+        private fun drawIcon(icon: ImageVector, x: Float, top: Float, drawSize: Float, rasterSize: Int) {
             if (dryRun) return
-            val bmp = PdfMaterialIcons.toBitmap(kind, rasterSize, ColorAccent)
+            val bmp = PdfMaterialIcons.toBitmap(icon, rasterSize, ColorAccent)
             val dst = RectF(x, top, x + drawSize, top + drawSize)
             canvas!!.drawBitmap(bmp, null, dst, iconPaint)
             bmp.recycle()
         }
 
         private fun drawSectionTitle(title: String, kind: NoteSectionKind, titleBold: Boolean = true) {
+            drawSectionTitle(title, kind.icon(), titleBold)
+        }
+
+        private fun drawSectionTitle(title: String, icon: ImageVector, titleBold: Boolean = true) {
             ensureSpace(26f)
             y += 8f
-            drawIcon(kind, Margin, y + 1f, IconDrawSize, IconRasterSize)
+            drawIcon(icon, Margin, y + 1f, IconDrawSize, IconRasterSize)
             val paint = if (titleBold) sectionPaint else sectionPaintNormal
             if (!dryRun) {
                 canvas!!.drawText(title, Margin + IconDrawSize + 6f, y + paint.textSize, paint)
             }
             y += paint.fontSpacing + 6f
+        }
+
+        private fun roundedAppLogo(drawSize: Float): Bitmap? {
+            val src = BitmapFactory.decodeResource(context.resources, R.drawable.pdf_app_logo) ?: return null
+            val px = (drawSize * 4f).toInt().coerceIn(96, 256)
+            val scaled = Bitmap.createScaledBitmap(src, px, px, true)
+            if (scaled !== src) src.recycle()
+            val out = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(out)
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                shader = BitmapShader(scaled, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+            }
+            val radius = px * LogoCornerRatio
+            canvas.drawRoundRect(RectF(0f, 0f, px.toFloat(), px.toFloat()), radius, radius, paint)
+            scaled.recycle()
+            return out
+        }
+
+        private fun drawDocumentHeader() {
+            val created = Date(createdAtEpochMillis)
+            val datePart = SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(created)
+            val timePart = SimpleDateFormat("HH:mm", Locale.FRANCE).format(created)
+            val subtitle = context.getString(R.string.pdf_note_created_at, datePart, timePart)
+            val title = context.getString(R.string.pdf_document_title)
+            val textBlockH = titlePaint.textSize + 4f + subtitlePaint.textSize
+            val headerH = max(LogoDrawSize, textBlockH)
+            ensureSpace(headerH + 14f)
+            if (!dryRun) {
+                val c = canvas!!
+                val logo = roundedAppLogo(LogoDrawSize)
+                val logoTop = y + (headerH - LogoDrawSize) / 2f
+                if (logo != null) {
+                    c.drawBitmap(
+                        logo,
+                        null,
+                        RectF(Margin, logoTop, Margin + LogoDrawSize, logoTop + LogoDrawSize),
+                        iconPaint,
+                    )
+                    logo.recycle()
+                }
+                val textX = Margin + LogoDrawSize + 10f
+                val textTop = y + (headerH - textBlockH) / 2f
+                c.drawText(title, textX, textTop + titlePaint.textSize, titlePaint)
+                c.drawText(
+                    subtitle,
+                    textX,
+                    textTop + titlePaint.textSize + 4f + subtitlePaint.textSize,
+                    subtitlePaint,
+                )
+            }
+            y += headerH + 14f
         }
 
         /** Une ligne, N colonnes (poids optionnels). Valeurs non grasses pour SECOURISTE. */
@@ -603,7 +681,7 @@ object InterventionRecapPdfExporter {
         }
 
         private fun drawContent() {
-            drawWrapped(context.getString(R.string.pdf_document_title), titlePaint, spacingAfter = 10f)
+            drawDocumentHeader()
 
             drawSectionTitle(
                 context.getString(R.string.pdf_section_secouriste),
@@ -698,8 +776,9 @@ object InterventionRecapPdfExporter {
             }
 
             drawSectionTitle(
-                context.getString(DisclaimerResources.documentTitle),
-                NoteSectionKind.Commentaire,
+                context.getString(R.string.pdf_section_informations),
+                Icons.Outlined.Info,
+                titleBold = false,
             )
             val disclaimer = context.getString(
                 DisclaimerResources.documentBody,

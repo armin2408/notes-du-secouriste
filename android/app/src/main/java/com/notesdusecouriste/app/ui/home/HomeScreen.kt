@@ -141,6 +141,9 @@ internal fun HomeScreenContent(
                 TextButton(
                     onClick = onConfirmDelete,
                     enabled = !uiState.isDeleting,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
                 ) {
                     Text(stringResource(R.string.delete_confirm_action))
                 }

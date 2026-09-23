@@ -1,6 +1,7 @@
 package com.notesdusecouriste.feature.interventionnotes.ui.recap
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,9 +53,17 @@ fun InterventionRecapScreen(
                         ),
                     )
                 }
+                is RecapExportEvent.SavedToDownloads -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                }
                 is RecapExportEvent.Error -> {
-                    snackbarHostState.showSnackbar(event.message)
-                    onBack()
+                    val hasPreview = viewModel.uiState.value.pdfPreviewFile != null
+                    if (hasPreview) {
+                        Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                    } else {
+                        snackbarHostState.showSnackbar(event.message)
+                        onBack()
+                    }
                 }
             }
         }
@@ -71,6 +80,7 @@ fun InterventionRecapScreen(
                 onBack()
             },
             onShare = viewModel::sharePdfPreview,
+            onDownload = viewModel::downloadPdfPreview,
             onAideMemoire = onAideMemoire,
             onToggleOrientation = viewModel::togglePdfOrientation,
         )

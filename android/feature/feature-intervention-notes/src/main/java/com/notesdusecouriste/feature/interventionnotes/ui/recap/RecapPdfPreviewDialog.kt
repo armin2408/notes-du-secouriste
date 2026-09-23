@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.ScreenRotation
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CircularProgressIndicator
@@ -71,6 +72,7 @@ fun RecapPdfPreviewDialog(
     isExporting: Boolean,
     onDismiss: () -> Unit,
     onShare: () -> Unit,
+    onDownload: () -> Unit,
     onAideMemoire: () -> Unit,
     onToggleOrientation: () -> Unit,
 ) {
@@ -115,6 +117,12 @@ fun RecapPdfPreviewDialog(
                             Icon(
                                 imageVector = Icons.Outlined.ScreenRotation,
                                 contentDescription = stringResource(R.string.pdf_toggle_orientation),
+                            )
+                        }
+                        IconButton(onClick = onDownload, enabled = !isExporting) {
+                            Icon(
+                                imageVector = Icons.Outlined.Download,
+                                contentDescription = stringResource(R.string.recap_download_pdf),
                             )
                         }
                         IconButton(onClick = onShare, enabled = !isExporting) {
