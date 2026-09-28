@@ -24,8 +24,8 @@ android {
         applicationId = "com.notesdusecouriste.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 7
-        versionName = "0.3.0-beta"
+        versionCode = 8
+        versionName = "0.3.1-beta"
     }
 
     signingConfigs {

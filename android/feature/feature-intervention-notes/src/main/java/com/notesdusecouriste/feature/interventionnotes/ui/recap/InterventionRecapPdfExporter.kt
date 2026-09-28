@@ -62,6 +62,13 @@ object InterventionRecapPdfExporter {
     private val ColorYellowFg = 0xFF765A00.toInt()
     private val ColorOrangeBg = 0xFFFFE0C2.toInt()
     private val ColorOrangeFg = 0xFFA94D00.toInt()
+    private val ColorRedBg = 0xFFFFE0E0.toInt()
+    private val ColorRedFg = 0xFFB3261E.toInt()
+
+    private const val TableTextSize = 7.5f
+    private const val TableCellPadding = 10f
+    private const val TableMinDataColumnWidth = 28f
+    private const val TableMaxLabelColumnRatio = 0.45f
 
     fun export(
         context: Context,
@@ -71,6 +78,7 @@ object InterventionRecapPdfExporter {
         photoFiles: List<File> = emptyList(),
         landscape: Boolean = false,
         createdAtEpochMillis: Long = System.currentTimeMillis(),
+        fileNameSuffix: String = "",
     ): File {
         val stamp = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.FRANCE).format(Date())
         val fileStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.FRANCE).format(Date())
@@ -108,7 +116,7 @@ object InterventionRecapPdfExporter {
             .take(40)
             .ifBlank { "intervention" }
         val orientationTag = if (landscape) "paysage" else "portrait"
-        val outFile = File(outDir, "recap_${safeName}_${orientationTag}_$fileStamp.pdf")
+        val outFile = File(outDir, "recap_${safeName}_${orientationTag}_$fileStamp$fileNameSuffix.pdf")
         FileOutputStream(outFile).use { stream ->
             document.writeTo(stream)
             stream.flush()
@@ -126,25 +134,31 @@ object InterventionRecapPdfExporter {
     fun wouldTruncateInPortrait(recap: InterventionRecap): Boolean {
         val table = recap.measuresTable ?: return false
         val contentWidth = PortraitWidth - Margin * 2
-        val cols = table.columnHeaders.size.coerceAtLeast(1)
         val labelPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = 7.5f
+            textSize = TableTextSize
         }
         val cellPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = 7.5f
+            textSize = TableTextSize
             textAlign = Paint.Align.CENTER
         }
-        val measureLabels = table.rows.mapNotNull { (it as? RecapTableRow.Measure)?.label }
-        val labelColW = measureLabels.maxOfOrNull { labelPaint.measureText(it) + 10f }
-            ?.coerceIn(56f, contentWidth * 0.32f)
-            ?: 90f
-        val colW = (contentWidth - labelColW) / cols
+        val headerPaint = TextPaint(cellPaint).apply {
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        val layout = computeMeasuresTableLayout(
+            table = table,
+            firstHeader = table.measureColumnHeader,
+            availableWidth = contentWidth,
+            labelPaint = labelPaint,
+            cellPaint = cellPaint,
+            headerPaint = headerPaint,
+        )
         table.rows.forEach { row ->
             if (row is RecapTableRow.Measure) {
-                if (needsEllipsis(row.label, labelPaint, labelColW - 6f)) return true
-                row.cells.forEach { cell ->
+                if (needsEllipsis(row.label, labelPaint, layout.labelColumnWidth - TableCellPadding)) return true
+                row.cells.forEachIndexed { i, cell ->
                     val text = cell.text.ifBlank { "—" }
-                    if (needsEllipsis(text, cellPaint, colW - 3f)) return true
+                    val colW = layout.dataColumnWidths.getOrElse(i) { 0f }
+                    if (needsEllipsis(text, cellPaint, colW - TableCellPadding / 2f)) return true
                 }
             }
         }
@@ -153,6 +167,54 @@ object InterventionRecapPdfExporter {
 
     private fun needsEllipsis(text: String, paint: TextPaint, maxWidth: Float): Boolean =
         paint.measureText(text) > maxWidth
+
+    private class MeasuresTableLayout(
+        val labelColumnWidth: Float,
+        val dataColumnWidths: List<Float>,
+    ) {
+        val totalWidth: Float get() = labelColumnWidth + dataColumnWidths.sum()
+
+        fun dataColumnLefts(tableLeft: Float): List<Float> {
+            var x = tableLeft + labelColumnWidth
+            return dataColumnWidths.map { w -> x.also { x += w } }
+        }
+    }
+
+    /**
+     * Largeurs ajustées au contenu (libellés, en-têtes, cellules). Si le tableau déborde,
+     * seules les colonnes horaires sont réduites proportionnellement.
+     */
+    private fun computeMeasuresTableLayout(
+        table: RecapMeasuresTable,
+        firstHeader: String,
+        availableWidth: Float,
+        labelPaint: TextPaint,
+        cellPaint: TextPaint,
+        headerPaint: TextPaint,
+    ): MeasuresTableLayout {
+        val measureLabels = table.rows.mapNotNull { (it as? RecapTableRow.Measure)?.label }
+        val labelContent = (measureLabels.map { labelPaint.measureText(it) } + headerPaint.measureText(firstHeader))
+            .maxOrNull() ?: 0f
+        val labelColW = (labelContent + TableCellPadding)
+            .coerceAtMost(availableWidth * TableMaxLabelColumnRatio)
+
+        val natural = table.columnHeaders.mapIndexed { i, header ->
+            val headerW = header.split(' ', limit = 2).maxOf { headerPaint.measureText(it) }
+            val cellsW = table.rows
+                .mapNotNull { (it as? RecapTableRow.Measure)?.cells?.getOrNull(i) }
+                .maxOfOrNull { cellPaint.measureText(it.text.ifBlank { "—" }) } ?: 0f
+            (max(headerW, cellsW) + TableCellPadding).coerceAtLeast(TableMinDataColumnWidth)
+        }
+        val dataAvailable = (availableWidth - labelColW).coerceAtLeast(0f)
+        val naturalSum = natural.sum()
+        val widths = if (naturalSum > dataAvailable && naturalSum > 0f) {
+            val factor = dataAvailable / naturalSum
+            natural.map { it * factor }
+        } else {
+            natural
+        }
+        return MeasuresTableLayout(labelColW, widths)
+    }
 
     private class Renderer(
         private val context: Context,
@@ -468,53 +530,73 @@ object InterventionRecapPdfExporter {
             y += height + 6f
         }
 
-        private fun drawKeyValueCard(lines: List<RecapLine>, labelRatio: Float = 0.28f) {
+        /**
+         * Carte libellé / valeur : colonne libellé à la largeur de son contenu (icône comprise),
+         * lignes à fond alterné.
+         */
+        private fun drawKeyValueCard(lines: List<RecapLine>, maxLabelRatio: Float = 0.45f) {
             if (lines.isEmpty()) return
-            val labelW = contentWidth * labelRatio
-            val valueW = (contentWidth - CardPad * 2 - labelW).coerceAtLeast(40f)
-            val rowGap = 4f
-            val prepared = lines.map { line ->
-                val labelLines = wrapText(
-                    line.label.uppercase(Locale.FRANCE),
-                    labelPaint,
-                    labelW,
-                )
+            val cardInset = 3f
+            val rowPadH = 8f
+            val rowPadV = 4f
+            val columnGap = 12f
+            val iconSpace = if (lines.any { it.icon != null }) IconDrawSizeSmall + 5f else 0f
+            val innerW = contentWidth - (cardInset + rowPadH) * 2
+            val labelTexts = lines.map { it.label.uppercase(Locale.FRANCE) }
+            val labelTextW = labelTexts.maxOf { labelPaint.measureText(it) }
+                .coerceAtMost(innerW * maxLabelRatio - iconSpace)
+                .coerceAtLeast(20f)
+            val valueX = Margin + cardInset + rowPadH + iconSpace + labelTextW + columnGap
+            val valueW = (Margin + contentWidth - cardInset - rowPadH - valueX).coerceAtLeast(40f)
+
+            val prepared = lines.mapIndexed { index, line ->
+                val labelLines = wrapText(labelTexts[index], labelPaint, labelTextW)
                 val valueLines = wrapText(line.value, valuePaint, valueW)
-                val lineCount = max(labelLines.size, valueLines.size).coerceAtLeast(1)
-                Triple(labelLines, valueLines, lineCount * valuePaint.fontSpacing)
+                val contentH = maxOf(
+                    labelLines.size * labelPaint.fontSpacing,
+                    valueLines.size * valuePaint.fontSpacing,
+                    IconDrawSizeSmall,
+                )
+                Triple(labelLines, valueLines, contentH + rowPadV * 2)
             }
-            val height = CardPad * 2 + prepared.fold(0f) { acc, row -> acc + row.third } +
-                rowGap * (prepared.size - 1).coerceAtLeast(0)
+            val height = cardInset * 2 + prepared.sumOf { it.third.toDouble() }.toFloat()
             ensureSpace(height + 6f)
             if (!dryRun) {
+                val c = canvas!!
                 val rect = RectF(Margin, y, Margin + contentWidth, y + height)
-                fillPaint.color = ColorCardBg
-                canvas!!.drawRoundRect(rect, Radius, Radius, fillPaint)
+                fillPaint.color = ColorCardWhite
+                c.drawRoundRect(rect, Radius, Radius, fillPaint)
                 strokePaint.color = ColorCardStroke
-                canvas!!.drawRoundRect(rect, Radius, Radius, strokePaint)
-                var rowY = y + CardPad
-                prepared.forEach { (labelLines, valueLines, rowH) ->
-                    var ly = rowY
-                    labelLines.forEach { text ->
-                        canvas!!.drawText(
-                            text,
-                            Margin + CardPad,
-                            ly + labelPaint.textSize,
-                            labelPaint,
+                c.drawRoundRect(rect, Radius, Radius, strokePaint)
+
+                var rowY = y + cardInset
+                prepared.forEachIndexed { index, (labelLines, valueLines, rowH) ->
+                    if (index % 2 == 0) {
+                        fillPaint.color = ColorCardBg
+                        c.drawRoundRect(
+                            RectF(Margin + cardInset, rowY, Margin + contentWidth - cardInset, rowY + rowH),
+                            Radius - cardInset,
+                            Radius - cardInset,
+                            fillPaint,
                         )
+                    }
+                    val firstBaseline = rowY + rowPadV + valuePaint.textSize
+                    val labelX = Margin + cardInset + rowPadH
+                    lines[index].icon?.let { icon ->
+                        val iconTop = rowY + rowPadV + (valuePaint.fontSpacing - IconDrawSizeSmall) / 2f
+                        drawIcon(icon, labelX, iconTop, IconDrawSizeSmall, IconRasterSizeSmall)
+                    }
+                    var ly = firstBaseline
+                    labelLines.forEach { text ->
+                        c.drawText(text, labelX + iconSpace, ly, labelPaint)
                         ly += labelPaint.fontSpacing
                     }
-                    var vy = rowY
+                    var vy = firstBaseline
                     valueLines.forEach { text ->
-                        canvas!!.drawText(
-                            text,
-                            Margin + CardPad + labelW,
-                            vy + valuePaint.textSize,
-                            valuePaint,
-                        )
+                        c.drawText(text, valueX, vy, valuePaint)
                         vy += valuePaint.fontSpacing
                     }
-                    rowY += rowH + rowGap
+                    rowY += rowH
                 }
             }
             y += height + 6f
@@ -525,20 +607,28 @@ object InterventionRecapPdfExporter {
             RecapCellTone.Green -> ColorGreenBg to ColorGreenFg
             RecapCellTone.Yellow -> ColorYellowBg to ColorYellowFg
             RecapCellTone.Orange -> ColorOrangeBg to ColorOrangeFg
+            RecapCellTone.Red -> ColorRedBg to ColorRedFg
         }
 
         private fun drawMeasuresTable(table: RecapMeasuresTable) {
-            val cols = table.columnHeaders.size.coerceAtLeast(1)
             val labelPaintRow = TextPaint(bodyPaint).apply {
-                textSize = 7.5f
+                textSize = TableTextSize
                 textAlign = Paint.Align.LEFT
             }
-            val measureLabels = table.rows.mapNotNull { (it as? RecapTableRow.Measure)?.label }
-            val labelColW = measureLabels.maxOfOrNull { labelPaintRow.measureText(it) + 10f }
-                ?.coerceIn(56f, contentWidth * 0.32f)
-                ?: 90f
-            val dataW = contentWidth - labelColW
-            val colW = dataW / cols
+            val firstHeader = table.measureColumnHeader.ifBlank {
+                context.getString(R.string.recap_table_measure_column)
+            }
+            val layout = computeMeasuresTableLayout(
+                table = table,
+                firstHeader = firstHeader,
+                availableWidth = contentWidth,
+                labelPaint = labelPaintRow,
+                cellPaint = cellPaint,
+                headerPaint = cellHeaderPaint,
+            )
+            val labelColW = layout.labelColumnWidth
+            val colLefts = layout.dataColumnLefts(Margin)
+            val tableRight = Margin + layout.totalWidth
             val rowH = 16f
             val headerHasDate = table.columnHeaders.any { it.contains(' ') }
             val headerH = if (headerHasDate) 26f else 18f
@@ -546,19 +636,23 @@ object InterventionRecapPdfExporter {
             ensureSpace(headerH + 2f)
             if (!dryRun) {
                 fillPaint.color = ColorHeaderBg
-                canvas!!.drawRect(Margin, y, Margin + contentWidth, y + headerH, fillPaint)
+                canvas!!.drawRect(Margin, y, tableRight, y + headerH, fillPaint)
                 strokePaint.color = ColorGrid
-                canvas!!.drawRect(Margin, y, Margin + contentWidth, y + headerH, strokePaint)
+                canvas!!.drawRect(Margin, y, tableRight, y + headerH, strokePaint)
+                canvas!!.drawLine(Margin + labelColW, y, Margin + labelColW, y + headerH, strokePaint)
                 cellHeaderPaint.textAlign = Paint.Align.LEFT
                 canvas!!.drawText(
-                    context.getString(R.string.recap_table_measure_column),
-                    Margin + 3f,
+                    ellipsize(firstHeader, cellHeaderPaint, labelColW - TableCellPadding),
+                    Margin + TableCellPadding / 2f,
                     y + headerH * 0.62f,
                     cellHeaderPaint,
                 )
                 cellHeaderPaint.textAlign = Paint.Align.CENTER
                 table.columnHeaders.forEachIndexed { i, header ->
-                    val cx = Margin + labelColW + colW * i + colW / 2f
+                    val colW = layout.dataColumnWidths[i]
+                    val left = colLefts[i]
+                    if (i > 0) canvas!!.drawLine(left, y, left, y + headerH, strokePaint)
+                    val cx = left + colW / 2f
                     val parts = header.split(' ', limit = 2)
                     if (parts.size == 2) {
                         canvas!!.drawText(parts[0], cx, y + 10f, cellHeaderPaint)
@@ -576,7 +670,9 @@ object InterventionRecapPdfExporter {
                         ensureSpace(rowH + 1f)
                         if (!dryRun) {
                             fillPaint.color = ColorHeaderBg
-                            canvas!!.drawRect(Margin, y, Margin + contentWidth, y + rowH, fillPaint)
+                            canvas!!.drawRect(Margin, y, tableRight, y + rowH, fillPaint)
+                            strokePaint.color = ColorGrid
+                            canvas!!.drawRect(Margin, y, tableRight, y + rowH, strokePaint)
                             val kind = PdfMaterialIcons.forMesureSectionTitle(row.title, mesureTitles)
                             var textX = Margin + 3f
                             if (kind != null) {
@@ -598,7 +694,7 @@ object InterventionRecapPdfExporter {
                         ensureSpace(rowH + 1f)
                         if (!dryRun) {
                             strokePaint.color = ColorGrid
-                            canvas!!.drawRect(Margin, y, Margin + contentWidth, y + rowH, strokePaint)
+                            canvas!!.drawRect(Margin, y, tableRight, y + rowH, strokePaint)
                             canvas!!.drawLine(
                                 Margin + labelColW,
                                 y,
@@ -607,13 +703,14 @@ object InterventionRecapPdfExporter {
                                 strokePaint,
                             )
                             canvas!!.drawText(
-                                ellipsize(row.label, labelPaintRow, labelColW - 6f),
-                                Margin + 3f,
+                                ellipsize(row.label, labelPaintRow, labelColW - TableCellPadding),
+                                Margin + TableCellPadding / 2f,
                                 y + rowH * 0.72f,
                                 labelPaintRow,
                             )
                             row.cells.forEachIndexed { i, cell ->
-                                val left = Margin + labelColW + colW * i
+                                val colW = layout.dataColumnWidths.getOrElse(i) { 0f }
+                                val left = colLefts.getOrElse(i) { tableRight }
                                 val right = left + colW
                                 canvas!!.drawLine(left, y, left, y + rowH, strokePaint)
                                 val text = cell.text.ifBlank { "—" }
@@ -632,7 +729,7 @@ object InterventionRecapPdfExporter {
                                     cellPaint.color = ColorInk
                                 }
                                 canvas!!.drawText(
-                                    ellipsize(text, cellPaint, colW - 3f),
+                                    ellipsize(text, cellPaint, colW - TableCellPadding / 2f),
                                     left + colW / 2f,
                                     y + rowH * 0.72f,
                                     cellPaint,
@@ -745,7 +842,7 @@ object InterventionRecapPdfExporter {
                         canvas!!.drawText(section.title, Margin, y + sectionPaint.textSize, sectionPaint)
                     }
                     y += sectionPaint.fontSpacing + 3f
-                    drawKeyValueCard(section.lines, labelRatio = 0.30f)
+                    drawKeyValueCard(section.lines)
                 }
             }
 

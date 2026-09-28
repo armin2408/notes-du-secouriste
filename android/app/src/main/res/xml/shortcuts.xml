@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_shortcut_new_note"
+        android:shortcutId="new_note"
+        android:shortcutLongLabel="@string/shortcut_new_note_long"
+        android:shortcutShortLabel="@string/shortcut_new_note_short">
+        <intent
+            android:action="com.notesdusecouriste.app.action.NEW_NOTE"
+            android:targetClass="com.notesdusecouriste.app.MainActivity"
+            android:targetPackage="com.notesdusecouriste.app" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_shortcut_aide_memoire"
+        android:shortcutId="aide_memoire"
+        android:shortcutLongLabel="@string/shortcut_aide_memoire_long"
+        android:shortcutShortLabel="@string/shortcut_aide_memoire_short">
+        <intent
+            android:action="com.notesdusecouriste.app.action.AIDE_MEMOIRE"
+            android:targetClass="com.notesdusecouriste.app.MainActivity"
+            android:targetPackage="com.notesdusecouriste.app" />
+    </shortcut>
+
+</shortcuts>

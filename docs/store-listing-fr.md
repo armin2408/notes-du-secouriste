@@ -77,6 +77,22 @@ Application en test : l’ergonomie et les fonctionnalités évoluent. Vos retou
 Politique de confidentialité : https://armin2408.github.io/notes-du-secouriste/
 ```
 
+## Notes de version (0.3.1 bêta)
+
+```
+Version bêta 0.3.1 — test fermé.
+
+• Nouvelle palette verte et nouveau logo
+• Raccourcis depuis l’icône : nouvelle note, aide-mémoire
+• Export groupé : télécharger ou partager plusieurs notes en PDF
+• Questionnaires SAMPLE et OPQRST
+• Écran « À propos » et réglages réorganisés
+• Accueil repensé avec démonstrations vidéo
+• Libellés des constantes complets dans la saisie et le PDF
+
+Merci de signaler les bugs et retours terrain.
+```
+
 ## Notes de version (0.3.0 bêta)
 
 ```

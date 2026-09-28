@@ -3,6 +3,19 @@ package com.notesdusecouriste.feature.interventionnotes.ui.recap
 
 
 import android.content.Context
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Accessibility
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Medication
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.Restaurant
+import androidx.compose.material.icons.outlined.Sick
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material.icons.outlined.Timeline
+import androidx.compose.material.icons.outlined.WarningAmber
 
 import com.notesdusecouriste.core.data.model.InterventionNoteContent
 
@@ -95,22 +108,22 @@ object InterventionRecapBuilder {
         buildList {
             val sampleLines = buildList {
                 questionnaires.sample.signesSymptomes.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "S — Signes / Symptômes", value = it))
+                    add(RecapLine(label = "S — Signes / Symptômes", value = it, icon = Icons.Outlined.Sick))
                 }
                 questionnaires.sample.allergies.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "A — Allergies", value = it))
+                    add(RecapLine(label = "A — Allergies", value = it, icon = Icons.Outlined.WarningAmber))
                 }
                 questionnaires.sample.medicaments.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "M — Médicaments", value = it))
+                    add(RecapLine(label = "M — Médicaments", value = it, icon = Icons.Outlined.Medication))
                 }
                 questionnaires.sample.antecedents.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "P — Antécédents", value = it))
+                    add(RecapLine(label = "P — Antécédents", value = it, icon = Icons.Outlined.History))
                 }
                 questionnaires.sample.dernierRepas.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "L — Dernier repas / boisson", value = it))
+                    add(RecapLine(label = "L — Dernier repas / boisson", value = it, icon = Icons.Outlined.Restaurant))
                 }
                 questionnaires.sample.evenements.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "E — Événements", value = it))
+                    add(RecapLine(label = "E — Événements", value = it, icon = Icons.Outlined.Description))
                 }
             }
             if (sampleLines.isNotEmpty()) {
@@ -119,22 +132,22 @@ object InterventionRecapBuilder {
 
             val opqrstLines = buildList {
                 questionnaires.opqrst.debut.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "O — Début", value = it))
+                    add(RecapLine(label = "O — Début", value = it, icon = Icons.Outlined.PlayCircle))
                 }
                 questionnaires.opqrst.provocationPalliation.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "P — Provocation / Soulagement", value = it))
+                    add(RecapLine(label = "P — Provocation / Soulagement", value = it, icon = Icons.Outlined.SwapVert))
                 }
                 questionnaires.opqrst.qualite.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "Q — Qualité", value = it))
+                    add(RecapLine(label = "Q — Qualité", value = it, icon = Icons.Outlined.Bolt))
                 }
                 questionnaires.opqrst.region.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "R — Région", value = it))
+                    add(RecapLine(label = "R — Région", value = it, icon = Icons.Outlined.Accessibility))
                 }
                 questionnaires.opqrst.severite.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "S — Sévérité", value = it))
+                    add(RecapLine(label = "S — Sévérité", value = it, icon = Icons.Outlined.Speed))
                 }
                 questionnaires.opqrst.temps.trim().takeIf { it.isNotEmpty() }?.let {
-                    add(RecapLine(label = "T — Temps / Évolution", value = it))
+                    add(RecapLine(label = "T — Temps / Évolution", value = it, icon = Icons.Outlined.Timeline))
                 }
             }
             if (opqrstLines.isNotEmpty()) {

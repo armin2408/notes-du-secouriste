@@ -6,14 +6,19 @@
     <string name="welcome_close">Fermer</string>
     <string name="welcome_page_indicator">Page %1$d sur %2$d</string>
 
-    <string name="welcome_slide1_title">Pourquoi Notes du Secouriste ?</string>
-    <string name="welcome_slide1_body">Pour les secouristes PSE : remplacer le carnet papier par un outil simple, sans compte à créer, utilisable hors réseau.</string>
+    <string name="welcome_slide1_title">Bye bye le papier\u00A0! 😀</string>
+    <string name="welcome_slide1_body">En tant que secouriste PSE, on a besoin de noter &amp; partager simplement nos notes de bilan. Que ce soit en intervention, ou dans la vie de tous les jours\u00A0!</string>
 
-    <string name="welcome_slide2_title">Quelles fonctionnalités ?</string>
-    <string name="welcome_slide2_body">Noter le bilan rapidement, saisir les constantes, prendre des photos, puis produire une synthèse PDF claire.</string>
+    <string name="welcome_slide2_title">C’est quoi déjà le 4ème regard\u00A0? 👀</string>
+    <string name="welcome_slide2_body">On a parfois besoin d’une piqûre de rappel sur le référentiel PSE. Ça serait cool d’avoir un aide-mémoire des notions clés… Peut-être même créer ses propres notes de formation\u00A0!</string>
 
-    <string name="welcome_slide3_title">Gestion des données</string>
-    <string name="welcome_slide3_body">Stockage local sur l’appareil. Cadre RGPD, secret médical et prise en charge de victime : vous gardez la maîtrise de vos notes.</string>
+    <string name="welcome_slide3_title">Un grand pouvoir implique… 🕸️</string>
+    <string name="welcome_slide3_body">Une grande responsabilité. Utilisez les données et photos uniquement dans le cadre de la prise en charge d’une victime. Respectez le consentement et la vie privée de chacun. Toutes les données de l’application sont stockées localement, sans compte ni serveur.</string>
+
+    <string name="welcome_privacy_local">Stockage local</string>
+    <string name="welcome_privacy_no_cloud">Sans serveur</string>
+    <string name="welcome_privacy_no_account">Sans compte</string>
+    <string name="welcome_privacy_consent">Vie privée</string>
 
     <string name="changelog_title">Journal des mises à jour</string>
     <string name="changelog_latest_badge">Dernière mise à jour</string>

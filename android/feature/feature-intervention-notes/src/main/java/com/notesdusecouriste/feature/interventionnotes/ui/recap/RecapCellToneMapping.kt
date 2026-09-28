@@ -34,5 +34,9 @@ internal fun RecapCellTone.toColors(): RecapToneColors? {
             container = semantic.alertContainer,
             onContainer = semantic.alertOnContainer,
         )
+        RecapCellTone.Red -> RecapToneColors(
+            container = semantic.criticalContainer,
+            onContainer = semantic.criticalOnContainer,
+        )
     }
 }

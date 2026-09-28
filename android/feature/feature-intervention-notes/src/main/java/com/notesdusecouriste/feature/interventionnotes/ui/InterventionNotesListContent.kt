@@ -376,6 +376,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(sample = it.questionnaires.sample.copy(signesSymptomes = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "A — Allergies",
@@ -384,6 +385,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(sample = it.questionnaires.sample.copy(allergies = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "M — Médicaments",
@@ -392,6 +394,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(sample = it.questionnaires.sample.copy(medicaments = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "P — Antécédents",
@@ -400,6 +403,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(sample = it.questionnaires.sample.copy(antecedents = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "L — Dernier repas / boisson",
@@ -408,6 +412,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(sample = it.questionnaires.sample.copy(dernierRepas = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "E — Événements",
@@ -416,6 +421,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(sample = it.questionnaires.sample.copy(evenements = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                 }
             }
@@ -443,6 +449,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(opqrst = it.questionnaires.opqrst.copy(debut = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "P — Provocation / Soulagement",
@@ -451,6 +458,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(opqrst = it.questionnaires.opqrst.copy(provocationPalliation = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "Q — Qualité",
@@ -459,6 +467,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(opqrst = it.questionnaires.opqrst.copy(qualite = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "R — Région",
@@ -467,6 +476,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(opqrst = it.questionnaires.opqrst.copy(region = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "S — Sévérité",
@@ -475,6 +485,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(opqrst = it.questionnaires.opqrst.copy(severite = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                     BlockTextField(
                         label = "T — Temps / Évolution",
@@ -483,6 +494,7 @@ private fun LazyListScope.questionnairesSection(
                             viewModel.updateContent { it.copy(questionnaires = it.questionnaires.copy(opqrst = it.questionnaires.opqrst.copy(temps = v))) }
                         },
                         singleLine = false,
+                        capitalizeSentences = true,
                     )
                 }
             }

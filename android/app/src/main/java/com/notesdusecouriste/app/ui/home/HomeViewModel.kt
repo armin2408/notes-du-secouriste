@@ -1,17 +1,23 @@
 package com.notesdusecouriste.app.ui.home
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.notesdusecouriste.core.data.model.Intervention
 import com.notesdusecouriste.core.data.repository.InterventionRepository
+import com.notesdusecouriste.feature.interventionnotes.ui.recap.InterventionPdfExportService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 sealed interface DeleteConfirmRequest {
@@ -26,14 +32,27 @@ data class HomeUiState(
     val selectedIds: Set<Long> = emptySet(),
     val deleteConfirm: DeleteConfirmRequest? = null,
     val isDeleting: Boolean = false,
+    val isExporting: Boolean = false,
 )
+
+sealed interface HomeExportEvent {
+    data class Share(val uris: List<Uri>, val skippedCount: Int) : HomeExportEvent
+    data class Downloaded(val count: Int, val skippedCount: Int) : HomeExportEvent
+    data object NothingToExport : HomeExportEvent
+    data object DownloadFailed : HomeExportEvent
+    data object ExportFailed : HomeExportEvent
+}
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val interventionRepository: InterventionRepository,
+    private val pdfExportService: InterventionPdfExportService,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    private val _exportEvents = MutableSharedFlow<HomeExportEvent>(extraBufferCapacity = 1)
+    val exportEvents: SharedFlow<HomeExportEvent> = _exportEvents.asSharedFlow()
 
     val interventions: StateFlow<List<Intervention>> =
         interventionRepository.observeInterventions()
@@ -130,6 +149,49 @@ class HomeViewModel @Inject constructor(
                         errorMessage = error.message ?: "Impossible de supprimer",
                     )
                 }
+            }
+        }
+    }
+
+    fun downloadSelected() {
+        exportSelected { files, skipped ->
+            try {
+                files.forEach { pdfExportService.saveToDownloads(it) }
+            } catch (_: Exception) {
+                _exportEvents.emit(HomeExportEvent.DownloadFailed)
+                return@exportSelected
+            }
+            exitSelectionMode()
+            _exportEvents.emit(HomeExportEvent.Downloaded(files.size, skipped))
+        }
+    }
+
+    fun shareSelected() {
+        exportSelected { files, skipped ->
+            val uris = files.map(pdfExportService::contentUri)
+            _exportEvents.emit(HomeExportEvent.Share(uris, skipped))
+        }
+    }
+
+    private fun exportSelected(onGenerated: suspend (files: List<File>, skipped: Int) -> Unit) {
+        val state = _uiState.value
+        val ids = state.selectedIds
+        if (ids.isEmpty() || state.isExporting || state.isDeleting) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isExporting = true) }
+            try {
+                val orderedIds = interventions.value.map { it.id }.filter { it in ids }
+                val files = pdfExportService.generateAll(orderedIds.ifEmpty { ids.toList() })
+                if (files.isEmpty()) {
+                    _exportEvents.emit(HomeExportEvent.NothingToExport)
+                } else {
+                    onGenerated(files, ids.size - files.size)
+                }
+            } catch (_: Exception) {
+                _exportEvents.emit(HomeExportEvent.ExportFailed)
+            } finally {
+                _uiState.update { it.copy(isExporting = false) }
             }
         }
     }

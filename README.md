@@ -2,7 +2,7 @@
 
 Application Android **100 % hors ligne** pour structurer les notes de terrain en secourisme (PSE) : comme un bloc-notes numérique pensé pour l’intervention, pas un dossier médical.
 
-> **Version bêta** — `0.3.0-beta` (test fermé Google Play)  
+> **Version bêta** — `0.3.1-beta` (test fermé Google Play)  
 > Outil d’**aide à la prise de notes**. Elle ne remplace ni un bilan officiel, ni les outils imposés par une association ou un service de secours, ni l’avis d’un professionnel de santé.
 
 **Dépôt :** [github.com/armin2408/notes-du-secouriste](https://github.com/armin2408/notes-du-secouriste)  
@@ -45,7 +45,7 @@ La saisie est **autosauvegardée** : on peut quitter l’écran sans perdre le t
 
 ---
 
-## Fonctionnalités (bêta 0.3.0)
+## Fonctionnalités (bêta 0.3.1)
 
 ### Accueil & interventions
 - Liste des interventions (brouillons)

@@ -103,6 +103,11 @@ val MeasureAlertOnContainerDark = Color(0xFFFFB874)
 val MeasureCriticalContainerDark = Color(0xFF4B1F21)
 val MeasureCriticalOnContainerDark = Color(0xFFFFB4AB)
 
+val MeasureWatchStrong = Color(0xFFF2A007)
+val MeasureOnWatchStrong = Color(0xFF3A2600)
+val MeasureWatchStrongDark = Color(0xFFFFB938)
+val MeasureOnWatchStrongDark = Color(0xFF3A2600)
+
 /** Alias historiques — valeurs claires (PDF / défauts hors CompositionLocal). */
 val ChoiceSelectedGreenContainer = MeasureNormalContainer
 val ChoiceSelectedGreenOnContainer = MeasureNormalOnContainer
@@ -140,6 +145,9 @@ data class NotesSemanticColors(
     val alertOnContainer: Color,
     val criticalContainer: Color,
     val criticalOnContainer: Color,
+    /** Teinte pleine ambre des choix « à surveiller » sélectionnés (saisie). */
+    val watchStrong: Color,
+    val onWatchStrong: Color,
 )
 
 val LightNotesSemanticColors = NotesSemanticColors(
@@ -151,6 +159,8 @@ val LightNotesSemanticColors = NotesSemanticColors(
     alertOnContainer = MeasureAlertOnContainer,
     criticalContainer = MeasureCriticalContainer,
     criticalOnContainer = MeasureCriticalOnContainer,
+    watchStrong = MeasureWatchStrong,
+    onWatchStrong = MeasureOnWatchStrong,
 )
 
 val DarkNotesSemanticColors = NotesSemanticColors(
@@ -162,6 +172,8 @@ val DarkNotesSemanticColors = NotesSemanticColors(
     alertOnContainer = MeasureAlertOnContainerDark,
     criticalContainer = MeasureCriticalContainerDark,
     criticalOnContainer = MeasureCriticalOnContainerDark,
+    watchStrong = MeasureWatchStrongDark,
+    onWatchStrong = MeasureOnWatchStrongDark,
 )
 
 val LocalNotesSemanticColors = staticCompositionLocalOf { LightNotesSemanticColors }

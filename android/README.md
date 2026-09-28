@@ -1,6 +1,6 @@
 # NOTES DU SECOURISTE — Application Android
 
-**Version :** `0.3.0-beta` (versionCode 7) · minSdk 26 · targetSdk 36 · compileSdk 37
+**Version :** `0.3.1-beta` (versionCode 8) · minSdk 26 · targetSdk 36 · compileSdk 37
 
 ## Prérequis
 
@@ -45,7 +45,7 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 
 L’app **Notes du Secouriste** s’installe et se lance.
 
-## Parcours testable (état code 0.3.0-beta)
+## Parcours testable (état code 0.3.1-beta)
 
 ### Accueil (Epic 1)
 

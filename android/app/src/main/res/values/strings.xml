@@ -3,6 +3,10 @@
     <string name="app_name">Notes du Secouriste</string>
     <string name="app_beta_badge">Beta</string>
     <string name="home_new_intervention">Nouvelle note</string>
+    <string name="shortcut_new_note_short">Nouvelle note</string>
+    <string name="shortcut_new_note_long">Nouvelle note d’intervention</string>
+    <string name="shortcut_aide_memoire_short">Aide-mémoire</string>
+    <string name="shortcut_aide_memoire_long">Ouvrir l’aide-mémoire</string>
     <string name="home_list_empty">Aucune intervention enregistrée.</string>
     <string name="content_description_aide_memoire">Aide mémoire</string>
     <string name="content_description_toggle_theme">Changer le thème</string>
@@ -16,6 +20,26 @@
     <string name="settings_theme_system_desc">Comme mon téléphone.</string>
     <string name="settings_theme_last_chosen">Dernier thème choisi</string>
     <string name="settings_theme_last_chosen_desc">Toujours comme je l\'ai laissé dans l\'app.</string>
+    <string name="settings_theme_system_short">Système</string>
+    <string name="settings_theme_last_chosen_short">Dernier choisi</string>
+    <string name="settings_section_preferences">Préférences</string>
+    <string name="settings_section_discover">Découvrir</string>
+    <string name="settings_section_information">Informations</string>
+    <string name="settings_profile_empty">Profil non renseigné</string>
+    <string name="settings_profile_cta">Compléter mon profil</string>
+    <string name="settings_privacy_entry">Politique de confidentialité</string>
+    <string name="settings_privacy_entry_desc">Vos notes restent sur cet appareil.</string>
+    <string name="settings_about_entry">À propos</string>
+    <string name="settings_about_entry_desc">Une application bénévole, faite par et pour les secouristes.</string>
+    <string name="settings_version">Version %1$s (%2$d)</string>
+
+    <string name="about_title">À propos</string>
+    <string name="about_volunteer_title">Une application bénévole</string>
+    <string name="about_volunteer_body">Notes du Secouriste est développée bénévolement, sur du temps libre, par un secouriste pour les secouristes.\n\nElle est gratuite et le restera. Aucun compte n’est nécessaire et aucune donnée n’est envoyée vers un serveur : tout reste sur votre téléphone.\n\nVos retours et idées d’amélioration sont précieux pour faire évoluer l’application.</string>
+    <string name="about_coffee_title">Payer un café au développeur</string>
+    <string name="about_coffee_body">Si l’application vous rend service, vous pourrez bientôt soutenir son développement en offrant un café. Totalement facultatif : l’application reste entièrement gratuite.</string>
+    <string name="about_coffee_badge">À venir</string>
+    <string name="about_coffee_action">Offrir un café</string>
 
     <string name="content_description_delete_intervention">Supprimer l\'intervention</string>
     <string name="content_description_open_recap">Afficher la synthèse PDF</string>
@@ -25,9 +49,23 @@
     <string name="delete_confirm_action">Supprimer</string>
     <string name="delete_cancel">Annuler</string>
     <string name="home_selection_count">%1$d sélectionnée(s)</string>
-    <string name="home_selection_hint">Appuyez sur les cartes pour sélectionner ou désélectionner.</string>
     <string name="home_selection_cancel">Annuler la sélection</string>
     <string name="home_selection_delete">Supprimer la sélection</string>
+    <string name="home_selection_download">Télécharger la sélection</string>
+    <string name="home_selection_share">Partager la sélection</string>
+    <string name="home_selection_share_chooser">Partager les notes</string>
+    <string name="home_selection_exporting">Préparation des PDF…</string>
+    <plurals name="home_selection_download_success">
+        <item quantity="one">%1$d PDF enregistré dans Téléchargements</item>
+        <item quantity="other">%1$d PDF enregistrés dans Téléchargements</item>
+    </plurals>
+    <plurals name="home_selection_skipped_empty">
+        <item quantity="one">%1$d note vide ignorée</item>
+        <item quantity="other">%1$d notes vides ignorées</item>
+    </plurals>
+    <string name="home_selection_nothing_to_export">Les notes sélectionnées sont vides.</string>
+    <string name="home_selection_download_error">Impossible d’enregistrer les PDF.</string>
+    <string name="home_selection_export_error">Impossible de générer les PDF.</string>
 
     <string name="settings_profile_entry">Mon profil secouriste</string>
     <string name="settings_profile_entry_desc">Identité, contact et compétences pour le PDF.</string>

@@ -14,6 +14,12 @@ import com.notesdusecouriste.feature.interventionnotes.R
 
 import com.notesdusecouriste.core.data.model.GlasgowMesure
 import com.notesdusecouriste.feature.interventionnotes.ui.GlasgowChoices
+import com.notesdusecouriste.feature.interventionnotes.ui.GlasgowScoreSeverity
+import com.notesdusecouriste.feature.interventionnotes.ui.scoreSeverity
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import com.notesdusecouriste.feature.interventionnotes.ui.GlasgowOption
 import com.notesdusecouriste.feature.interventionnotes.ui.MesureChoices
 import com.notesdusecouriste.feature.interventionnotes.ui.totalScore
@@ -26,6 +32,8 @@ import com.notesdusecouriste.feature.interventionnotes.ui.mesureTabLabelsShowDat
 
 
 internal object MesureRecapTableBuilder {
+
+    private val singleDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yy", Locale.FRANCE)
 
 
 
@@ -67,7 +75,25 @@ internal object MesureRecapTableBuilder {
 
         if (tableRows.isEmpty()) return null
 
-        return RecapMeasuresTable(columnHeaders = headers, rows = tableRows)
+        val measureColumnHeader = if (showDate) {
+            context.getString(R.string.recap_table_measure_column)
+        } else {
+            val firstDated = sorted.firstOrNull { it.horodatageEpochMillis > 0L }
+            if (firstDated == null) {
+                context.getString(R.string.recap_table_measure_column)
+            } else {
+                val date = Instant.ofEpochMilli(firstDated.horodatageEpochMillis)
+                    .atZone(ZoneId.systemDefault())
+                    .format(singleDateFormatter)
+                context.getString(R.string.recap_table_measure_column_single_date, date)
+            }
+        }
+
+        return RecapMeasuresTable(
+            columnHeaders = headers,
+            rows = tableRows,
+            measureColumnHeader = measureColumnHeader,
+        )
 
     }
 
@@ -137,12 +163,6 @@ internal object MesureRecapTableBuilder {
 
                     },
 
-                    MeasureRowDef(context.getString(R.string.recap_sat_o2)) { e, empty ->
-
-                        numericCell(e.respiration.saturationPct, pct, empty)
-
-                    },
-
                     MeasureRowDef(context.getString(R.string.recap_resp_amplitude)) { e, empty ->
 
                         choiceCell(e.respiration.amplitude, MesureChoices.respirationAmplitude, empty)
@@ -161,6 +181,10 @@ internal object MesureRecapTableBuilder {
 
                     },
 
+                    MeasureRowDef(context.getString(R.string.recap_sat_o2)) { e, empty ->
+                        numericCell(e.respiration.saturationPct, pct, empty)
+                    },
+
                 ),
 
             ),
@@ -174,12 +198,6 @@ internal object MesureRecapTableBuilder {
                     MeasureRowDef(context.getString(R.string.recap_freq_card)) { e, empty ->
 
                         numericCell(e.circulation.withMigratedTension().frequenceBpm, bpm, empty)
-
-                    },
-
-                    MeasureRowDef(context.getString(R.string.recap_tension)) { e, empty ->
-
-                        tensionCell(e.circulation.withMigratedTension(), mmHg, empty)
 
                     },
 
@@ -199,6 +217,10 @@ internal object MesureRecapTableBuilder {
 
                         choiceCell(e.circulation.aspect, MesureChoices.circulationAspect, empty)
 
+                    },
+
+                    MeasureRowDef(context.getString(R.string.recap_tension)) { e, empty ->
+                        tensionCell(e.circulation.withMigratedTension(), mmHg, empty)
                     },
 
                     MeasureRowDef(context.getString(R.string.recap_trc)) { e, empty ->
@@ -389,7 +411,13 @@ internal object MesureRecapTableBuilder {
 
     private fun glasgowTotalCell(glasgow: GlasgowMesure, emptyCell: String): RecapTableCell {
         val total = glasgow.totalScore() ?: return RecapTableCell(emptyCell)
-        return RecapTableCell("$total/15")
+        val tone = when (glasgow.scoreSeverity()) {
+            GlasgowScoreSeverity.Neutral -> RecapCellTone.None
+            GlasgowScoreSeverity.Green -> RecapCellTone.Green
+            GlasgowScoreSeverity.Orange -> RecapCellTone.Orange
+            GlasgowScoreSeverity.Red -> RecapCellTone.Red
+        }
+        return RecapTableCell("$total/15", tone)
     }
 
     private fun glasgowCell(

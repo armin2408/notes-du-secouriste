@@ -60,7 +60,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Scaffold
@@ -73,7 +72,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -90,7 +88,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.scrollBy
-import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.zIndex
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.ui.graphics.SolidColor
+import com.notesdusecouriste.core.ui.components.PrimaryAddTab
+import com.notesdusecouriste.core.ui.components.PrimaryLongPressTab
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -142,43 +160,85 @@ private fun AideMemoireSearchBar(
     onClose: () -> Unit,
 ) {
     val hasResults = matchCount > 0
-    val barColor = MaterialTheme.colorScheme.surfaceContainer
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = barColor,
+        color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
-        Row(
+        // Barre de recherche Material 3 Expressive : conteneur pilule, icône en tête, actions en fin.
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = 12.dp, vertical = 6.dp)
+                .height(56.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
         ) {
-            TextField(
-                value = query,
-                onValueChange = onQueryChange,
-                singleLine = true,
-                placeholder = { Text("Rechercher…") },
-                modifier = Modifier.weight(1f),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = barColor,
-                    unfocusedContainerColor = barColor,
-                    disabledContainerColor = barColor,
-                ),
-            )
-            IconButton(
-                onClick = onPreviousMatch,
-                enabled = hasResults,
+            Row(
+                modifier = Modifier.padding(start = 16.dp, end = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = "Résultat précédent")
-            }
-            IconButton(
-                onClick = onNextMatch,
-                enabled = hasResults,
-            ) {
-                Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Résultat suivant")
-            }
-            IconButton(onClick = onClose) {
-                Icon(Icons.Outlined.Close, contentDescription = "Fermer la recherche")
+                Icon(
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    if (query.isEmpty()) {
+                        Text(
+                            text = "Rechercher…",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    BasicTextField(
+                        value = query,
+                        onValueChange = onQueryChange,
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                        ),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = { onNextMatch() }),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                    )
+                }
+                if (query.isNotEmpty()) {
+                    Text(
+                        text = if (hasResults) "${currentMatchIndex + 1}/$matchCount" else "0/0",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (hasResults) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        },
+                    )
+                }
+                IconButton(
+                    onClick = onPreviousMatch,
+                    enabled = hasResults,
+                ) {
+                    Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = "Résultat précédent")
+                }
+                IconButton(
+                    onClick = onNextMatch,
+                    enabled = hasResults,
+                ) {
+                    Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = "Résultat suivant")
+                }
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Outlined.Close, contentDescription = "Fermer la recherche")
+                }
             }
         }
     }
@@ -480,9 +540,12 @@ fun AideMemoirePlaceholderScreen(
                         DropdownMenu(
                             expanded = overflowMenuOpen,
                             onDismissRequest = { overflowMenuOpen = false },
+                            shape = AideMemoireMenuShape,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Gérer les onglets") },
+                                trailingIcon = { Icon(Icons.Outlined.Tune, contentDescription = null) },
                                 onClick = {
                                     overflowMenuOpen = false
                                     manageScreenOpen = true
@@ -490,7 +553,7 @@ fun AideMemoirePlaceholderScreen(
                             )
                             DropdownMenuItem(
                                 text = { Text("Nouvel onglet") },
-                                leadingIcon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                                trailingIcon = { Icon(Icons.Outlined.Add, contentDescription = null) },
                                 onClick = {
                                     overflowMenuOpen = false
                                     newTabTitle = ""
@@ -571,30 +634,47 @@ fun AideMemoirePlaceholderScreen(
                         edgePadding = 12.dp,
                         divider = {},
                         indicator = { tabPositions ->
-                            TabRowDefaults.SecondaryIndicator(
-                                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                            val position = tabPositions[selectedTabIndex]
+                            TabRowDefaults.PrimaryIndicator(
+                                modifier = Modifier.tabIndicatorOffset(position),
+                                width = position.contentWidth,
+                                shape = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp),
                             )
                         },
                     ) {
                         visibleTabs.forEachIndexed { index, tab ->
-                            Tab(
+                            PrimaryLongPressTab(
+                                title = tab.title,
                                 selected = selectedTabIndex == index,
                                 onClick = { selectedTabId = tab.id },
-                                text = { Text(tab.title) },
-                                modifier = Modifier.combinedClickable(
-                                    onClick = { selectedTabId = tab.id },
-                                    onLongClick = { tabActionsTarget = tab },
-                                ),
-                            )
+                                onLongClick = { tabActionsTarget = tab },
+                            ) {
+                                AideMemoireTabActionsMenu(
+                                    expanded = tabActionsTarget?.id == tab.id,
+                                    canEdit = !tab.isDefault,
+                                    onDismiss = { tabActionsTarget = null },
+                                    onRename = {
+                                        tabActionsTarget = null
+                                        renameTabDraft = tab.title
+                                        renameTabTarget = tab
+                                    },
+                                    onMove = {
+                                        tabActionsTarget = null
+                                        manageScreenOpen = true
+                                    },
+                                    onDelete = {
+                                        tabActionsTarget = null
+                                        deleteConfirmTab = tab
+                                    },
+                                )
+                            }
                         }
-                        // Texte seul (pas icon+text) : même hauteur que les autres onglets (48dp).
-                        Tab(
-                            selected = false,
+                        PrimaryAddTab(
                             onClick = {
                                 newTabTitle = ""
                                 createDialogOpen = true
                             },
-                            text = { Text("+") },
+                            contentDescription = "Nouvel onglet",
                         )
                     }
                 }
@@ -650,26 +730,6 @@ fun AideMemoirePlaceholderScreen(
                 val safeTitle = newTabTitle.trim().ifBlank { "Nouvel onglet" }
                 scope.launch { repository.createBlankMarkdown(title = safeTitle) }
                 createDialogOpen = false
-            },
-        )
-    }
-
-    tabActionsTarget?.let { target ->
-        AideMemoireTabActionsSheet(
-            tab = target,
-            onDismiss = { tabActionsTarget = null },
-            onRename = {
-                tabActionsTarget = null
-                renameTabDraft = target.title
-                renameTabTarget = target
-            },
-            onMove = {
-                tabActionsTarget = null
-                manageScreenOpen = true
-            },
-            onDelete = {
-                tabActionsTarget = null
-                deleteConfirmTab = target
             },
         )
     }
@@ -1186,14 +1246,22 @@ private fun ManageTabsScreen(
     onDelete: (String) -> Unit,
     onCreateNew: () -> Unit,
 ) {
-    // Local list for smooth drag feedback.
-    val localTabs = remember(tabs) { tabs.toMutableList() }
-    val visibleCount = remember(localTabs) { localTabs.count { it.visible } }
+    val localTabs = remember { mutableStateListOf(*tabs.toTypedArray()) }
+    val visibleCount = localTabs.count { it.visible }
 
     var draggingIndex by remember { mutableIntStateOf(-1) }
     var dragAccumulated by remember { mutableStateOf(0f) }
-    val rowHeight: Dp = 72.dp
-    val rowHeightPx = with(LocalDensity.current) { rowHeight.toPx() }.coerceAtLeast(1f)
+
+    LaunchedEffect(tabs) {
+        if (draggingIndex < 0) {
+            localTabs.clear()
+            localTabs.addAll(tabs)
+        }
+    }
+
+    // Pas de réordonnancement = hauteur d'une ligne + espacement de la LazyColumn.
+    val rowStep: Dp = 72.dp + 10.dp
+    val rowHeightPx = with(LocalDensity.current) { rowStep.toPx() }.coerceAtLeast(1f)
     var pendingDeleteTab by remember { mutableStateOf<AideMemoireTabConfig?>(null) }
 
     Scaffold(
@@ -1222,10 +1290,19 @@ private fun ManageTabsScreen(
         ) {
             items(localTabs, key = { it.id }) { tab ->
                 val index = localTabs.indexOfFirst { it.id == tab.id }
+                val isDragging = index == draggingIndex
                 ManageTabRowDrag(
                     tab = tab,
                     canHide = !(tab.visible && visibleCount <= 1),
-                    dragging = index == draggingIndex,
+                    dragging = isDragging,
+                    dragOffsetY = if (isDragging) dragAccumulated else 0f,
+                    modifier = Modifier
+                        .zIndex(if (isDragging) 1f else 0f)
+                        .animateItem(
+                            fadeInSpec = null,
+                            fadeOutSpec = null,
+                            placementSpec = if (isDragging) null else spring(stiffness = Spring.StiffnessMediumLow),
+                        ),
                     onStartDrag = {
                         draggingIndex = index
                         dragAccumulated = 0f
@@ -1301,57 +1378,82 @@ private fun ManageTabRowDrag(
     tab: AideMemoireTabConfig,
     canHide: Boolean,
     dragging: Boolean,
+    dragOffsetY: Float,
     onStartDrag: () -> Unit,
     onDragDelta: (Float) -> Unit,
     onEndDrag: () -> Unit,
     onToggleVisible: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = Modifier
+    val haptics = LocalHapticFeedback.current
+    val currentOnStartDrag by rememberUpdatedState(onStartDrag)
+    val currentOnDragDelta by rememberUpdatedState(onDragDelta)
+    val currentOnEndDrag by rememberUpdatedState(onEndDrag)
+
+    val scale by animateFloatAsState(if (dragging) 1.03f else 1f, label = "dragScale")
+    val elevation by animateDpAsState(if (dragging) 8.dp else 0.dp, label = "dragElevation")
+    val containerColor by animateColorAsState(
+        if (dragging) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
+        label = "dragContainer",
+    )
+
+    Surface(
+        modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 72.dp)
+            .graphicsLayer {
+                translationY = dragOffsetY
+                scaleX = scale
+                scaleY = scale
+            }
             .pointerInput(tab.id) {
-                // Drag on the whole row (simple v1).
                 detectDragGestures(
-                    onDragStart = { onStartDrag() },
-                    onDragEnd = { onEndDrag() },
-                    onDragCancel = { onEndDrag() },
+                    onDragStart = {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        currentOnStartDrag()
+                    },
+                    onDragEnd = { currentOnEndDrag() },
+                    onDragCancel = { currentOnEndDrag() },
                     onDrag = { change, dragAmount ->
-                        change.consumeAllChanges()
-                        onDragDelta(dragAmount.y)
+                        change.consume()
+                        currentOnDragDelta(dragAmount.y)
                     },
                 )
             },
+        shape = MaterialTheme.shapes.large,
+        color = containerColor,
+        shadowElevation = elevation,
+        border = if (dragging) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = 72.dp)
                 .padding(horizontal = 6.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Outlined.DragHandle,
                 contentDescription = "Réordonner",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(end = 6.dp),
+                tint = if (dragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 6.dp),
             )
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = tab.title,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = if (dragging) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
                 )
-                Text(
-                    text = when (tab.type) {
-                        AideMemoireTabType.Markdown -> if (tab.isDefault) "Markdown (défaut)" else "Markdown (perso)"
-                        AideMemoireTabType.Pdf -> "Markdown"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (tab.isDefault) {
+                    Text(
+                        text = "Onglets par défaut",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             IconButton(
@@ -1536,71 +1638,43 @@ private fun DeleteTabConfirmDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val AideMemoireMenuShape = RoundedCornerShape(16.dp)
+
 @Composable
-private fun AideMemoireTabActionsSheet(
-    tab: AideMemoireTabConfig,
+private fun AideMemoireTabActionsMenu(
+    expanded: Boolean,
+    canEdit: Boolean,
     onDismiss: () -> Unit,
     onRename: () -> Unit,
     onMove: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(
+    DropdownMenu(
+        expanded = expanded,
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
+        shape = AideMemoireMenuShape,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp),
-        ) {
-            Text(
-                text = tab.title,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            AideMemoireTabActionRow(
-                label = "Renommer",
-                onClick = onRename,
-                enabled = !tab.isDefault,
-            )
-            HorizontalDivider()
-            AideMemoireTabActionRow(label = "Déplacer", onClick = onMove)
-            HorizontalDivider()
-            AideMemoireTabActionRow(
-                label = "Supprimer",
-                onClick = onDelete,
-                isDestructive = true,
-                enabled = !tab.isDefault,
-            )
-        }
+        DropdownMenuItem(
+            text = { Text("Renommer") },
+            leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+            enabled = canEdit,
+            onClick = onRename,
+        )
+        DropdownMenuItem(
+            text = { Text("Déplacer") },
+            leadingIcon = { Icon(Icons.Outlined.SwapHoriz, contentDescription = null) },
+            onClick = onMove,
+        )
+        DropdownMenuItem(
+            text = { Text("Supprimer") },
+            leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+            enabled = canEdit,
+            onClick = onDelete,
+            colors = MenuDefaults.itemColors(
+                textColor = MaterialTheme.colorScheme.error,
+                leadingIconColor = MaterialTheme.colorScheme.error,
+            ),
+        )
     }
-}
-
-@Composable
-private fun AideMemoireTabActionRow(
-    label: String,
-    onClick: () -> Unit,
-    isDestructive: Boolean = false,
-    enabled: Boolean = true,
-) {
-    val color = when {
-        !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        isDestructive -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-    Text(
-        text = label,
-        style = MaterialTheme.typography.bodyLarge,
-        color = color,
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (enabled) Modifier.clickable(onClick = onClick)
-                else Modifier,
-            )
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-    )
 }

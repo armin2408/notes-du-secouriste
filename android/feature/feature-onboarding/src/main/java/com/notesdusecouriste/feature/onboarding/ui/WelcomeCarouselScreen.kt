@@ -17,7 +17,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.notesdusecouriste.feature.onboarding.R
 import com.notesdusecouriste.feature.onboarding.content.WelcomeSlides
+import com.notesdusecouriste.feature.onboarding.content.WelcomeVisual
 import kotlinx.coroutines.launch
 
 /**
@@ -138,41 +138,44 @@ fun WelcomeCarouselScreen(
                 .padding(padding),
         ) { page ->
             val slide = slides[page]
+            val isActive = pagerState.currentPage == page
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 28.dp),
+                    .padding(top = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = slide.icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(56.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                val visualModifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                when (val visual = slide.visual) {
+                    is WelcomeVisual.PhoneVideo -> PhoneInHandVisual(
+                        videoRes = visual.videoRes,
+                        isActive = isActive,
+                        modifier = visualModifier,
+                    )
+                    WelcomeVisual.Privacy -> PrivacyVisual(
+                        isActive = isActive,
+                        modifier = visualModifier.padding(horizontal = 28.dp),
                     )
                 }
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = stringResource(slide.titleRes),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 28.dp),
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = stringResource(slide.bodyRes),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 28.dp),
                 )
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

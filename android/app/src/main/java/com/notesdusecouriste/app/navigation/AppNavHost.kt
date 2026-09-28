@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import com.notesdusecouriste.app.shortcuts.AppShortcut
+import com.notesdusecouriste.app.shortcuts.ShortcutLauncherViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
@@ -19,6 +22,7 @@ import com.notesdusecouriste.app.ui.components.AideMemoireThemeActions
 import com.notesdusecouriste.app.ui.components.ThemeToggleIconButton
 import com.notesdusecouriste.app.ui.home.HomeScreen
 import com.notesdusecouriste.app.ui.onboarding.OnboardingGateViewModel
+import com.notesdusecouriste.app.ui.settings.AboutScreen
 import com.notesdusecouriste.app.ui.settings.SecouristeProfileScreen
 import com.notesdusecouriste.app.ui.settings.SettingsScreen
 import com.notesdusecouriste.app.ui.theme.appThemeViewModel
@@ -30,7 +34,10 @@ import com.notesdusecouriste.feature.onboarding.ui.WelcomeCarouselScreen
 
 @Composable
 fun AppNavHost(
+    pendingShortcut: AppShortcut? = null,
+    onShortcutHandled: () -> Unit = {},
     onboardingGateViewModel: OnboardingGateViewModel = hiltViewModel(),
+    shortcutLauncherViewModel: ShortcutLauncherViewModel = hiltViewModel(),
 ) {
     val onboardingCompleted by onboardingGateViewModel.onboardingCompleted.collectAsStateWithLifecycle()
     val themeViewModel = appThemeViewModel()
@@ -52,6 +59,23 @@ fun AppNavHost(
                     Routes.onboarding(preview = false)
                 } else {
                     Routes.HOME
+                }
+
+                // Les raccourcis ouvrent leur écran au-dessus de l'accueil (retour = accueil).
+                LaunchedEffect(pendingShortcut, onboardingCompleted) {
+                    val shortcut = pendingShortcut ?: return@LaunchedEffect
+                    onShortcutHandled()
+                    if (onboardingCompleted != true) return@LaunchedEffect
+                    when (shortcut) {
+                        AppShortcut.NewNote -> shortcutLauncherViewModel.createNote { id ->
+                            navController.navigate(Routes.intervention(id)) {
+                                launchSingleTop = true
+                            }
+                        }
+                        AppShortcut.AideMemoire -> navController.navigate(Routes.AIDE_MEMOIRE) {
+                            launchSingleTop = true
+                        }
+                    }
                 }
 
                 NavHost(
@@ -181,6 +205,14 @@ fun AppNavHost(
                             onOpenChangelog = {
                                 navController.navigate(Routes.CHANGELOG)
                             },
+                            onOpenAbout = {
+                                navController.navigate(Routes.ABOUT)
+                            },
+                        )
+                    }
+                    composable(Routes.ABOUT) {
+                        AboutScreen(
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable(Routes.SECOURISTE_PROFILE) {

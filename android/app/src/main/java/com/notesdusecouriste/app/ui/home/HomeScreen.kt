@@ -1,5 +1,7 @@
 package com.notesdusecouriste.app.ui.home
 
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,7 +17,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -38,7 +42,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,6 +62,7 @@ import com.notesdusecouriste.core.ui.preview.ThemePreviews
 import com.notesdusecouriste.core.ui.systembars.navigationBarBottomPadding
 import com.notesdusecouriste.core.ui.systembars.scaffoldContentWithoutNavigationBar
 import com.notesdusecouriste.core.ui.theme.NotesDuSecouristeTheme
+import com.notesdusecouriste.feature.interventionnotes.ui.recap.InterventionPdfExportService
 
 @Composable
 fun HomeScreen(
@@ -69,6 +77,47 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val interventions by viewModel.interventions.collectAsStateWithLifecycle()
     val isDark by themeViewModel.effectiveIsDark.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.exportEvents.collect { event ->
+            val resources = context.resources
+            val skippedCount = when (event) {
+                is HomeExportEvent.Share -> event.skippedCount
+                is HomeExportEvent.Downloaded -> event.skippedCount
+                else -> 0
+            }
+            val skippedMessage = skippedCount.takeIf { it > 0 }?.let {
+                resources.getQuantityString(R.plurals.home_selection_skipped_empty, it, it)
+            }
+            val message = when (event) {
+                is HomeExportEvent.Share -> {
+                    context.startActivity(
+                        Intent.createChooser(
+                            InterventionPdfExportService.sharePdfIntent(event.uris),
+                            context.getString(R.string.home_selection_share_chooser),
+                        ),
+                    )
+                    skippedMessage
+                }
+                is HomeExportEvent.Downloaded -> listOfNotNull(
+                    resources.getQuantityString(
+                        R.plurals.home_selection_download_success,
+                        event.count,
+                        event.count,
+                    ),
+                    skippedMessage,
+                ).joinToString(" · ")
+                HomeExportEvent.NothingToExport ->
+                    context.getString(R.string.home_selection_nothing_to_export)
+                HomeExportEvent.DownloadFailed ->
+                    context.getString(R.string.home_selection_download_error)
+                HomeExportEvent.ExportFailed ->
+                    context.getString(R.string.home_selection_export_error)
+            }
+            message?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+        }
+    }
 
     PrivacyGuardrailDialog()
 
@@ -87,6 +136,8 @@ fun HomeScreen(
         onRequestDeleteSingle = viewModel::requestDeleteSingle,
         onExitSelectionMode = viewModel::exitSelectionMode,
         onRequestDeleteSelected = viewModel::requestDeleteSelected,
+        onDownloadSelected = viewModel::downloadSelected,
+        onShareSelected = viewModel::shareSelected,
         onConfirmDelete = viewModel::confirmDelete,
         onDismissDeleteConfirm = viewModel::dismissDeleteConfirm,
         onErrorConsumed = viewModel::clearError,
@@ -110,11 +161,14 @@ internal fun HomeScreenContent(
     onRequestDeleteSingle: (Long) -> Unit,
     onExitSelectionMode: () -> Unit,
     onRequestDeleteSelected: () -> Unit,
+    onDownloadSelected: () -> Unit,
+    onShareSelected: () -> Unit,
     onConfirmDelete: () -> Unit,
     onDismissDeleteConfirm: () -> Unit,
     onErrorConsumed: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val exportingDescription = stringResource(R.string.home_selection_exporting)
     val topBarColors = TopAppBarDefaults.topAppBarColors(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         titleContentColor = MaterialTheme.colorScheme.onSurface,
@@ -182,9 +236,36 @@ internal fun HomeScreenContent(
                         }
                     },
                     actions = {
+                        val canAct = uiState.selectedIds.isNotEmpty() &&
+                            !uiState.isDeleting &&
+                            !uiState.isExporting
+                        if (uiState.isExporting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .padding(horizontal = 12.dp)
+                                    .size(24.dp)
+                                    .semantics {
+                                        contentDescription = exportingDescription
+                                    },
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            IconButton(onClick = onDownloadSelected, enabled = canAct) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Download,
+                                    contentDescription = stringResource(R.string.home_selection_download),
+                                )
+                            }
+                            IconButton(onClick = onShareSelected, enabled = canAct) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Share,
+                                    contentDescription = stringResource(R.string.home_selection_share),
+                                )
+                            }
+                        }
                         IconButton(
                             onClick = onRequestDeleteSelected,
-                            enabled = uiState.selectedIds.isNotEmpty() && !uiState.isDeleting,
+                            enabled = canAct,
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
@@ -246,50 +327,40 @@ internal fun HomeScreenContent(
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (!uiState.isSelectionMode) {
-                item {
-                    Button(
-                        onClick = onNewIntervention,
-                        enabled = !uiState.isCreating,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 72.dp),
-                        shape = MaterialTheme.shapes.extraLarge,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 2.dp,
-                            pressedElevation = 6.dp,
-                        ),
-                    ) {
-                        if (uiState.isCreating) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Outlined.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.home_new_intervention),
-                                style = MaterialTheme.typography.titleLarge,
-                            )
-                        }
+            item {
+                Button(
+                    onClick = onNewIntervention,
+                    enabled = !uiState.isCreating && !uiState.isSelectionMode,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 72.dp),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 2.dp,
+                        pressedElevation = 6.dp,
+                    ),
+                ) {
+                    if (uiState.isCreating) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.home_new_intervention),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
                     }
-                }
-            } else {
-                item {
-                    Text(
-                        text = stringResource(R.string.home_selection_hint),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                 }
             }
 
@@ -323,26 +394,25 @@ internal fun HomeScreenContent(
                 }
             }
 
-            if (!uiState.isSelectionMode) {
-                item {
-                    OutlinedButton(
-                        onClick = onSettings,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 48.dp),
-                        shape = MaterialTheme.shapes.large,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.settings_title),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
+            item {
+                OutlinedButton(
+                    onClick = onSettings,
+                    enabled = !uiState.isSelectionMode,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp),
+                    shape = MaterialTheme.shapes.large,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.settings_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
                 }
             }
         }
@@ -399,6 +469,8 @@ private fun HomeScreenResponsivePreview() {
             onRequestDeleteSingle = {},
             onExitSelectionMode = {},
             onRequestDeleteSelected = {},
+            onDownloadSelected = {},
+            onShareSelected = {},
             onConfirmDelete = {},
             onDismissDeleteConfirm = {},
             onErrorConsumed = {},
@@ -425,6 +497,8 @@ private fun HomeScreenThemePreview() {
             onRequestDeleteSingle = {},
             onExitSelectionMode = {},
             onRequestDeleteSelected = {},
+            onDownloadSelected = {},
+            onShareSelected = {},
             onConfirmDelete = {},
             onDismissDeleteConfirm = {},
             onErrorConsumed = {},
@@ -451,6 +525,8 @@ private fun HomeScreenEmptyPreview() {
             onRequestDeleteSingle = {},
             onExitSelectionMode = {},
             onRequestDeleteSelected = {},
+            onDownloadSelected = {},
+            onShareSelected = {},
             onConfirmDelete = {},
             onDismissDeleteConfirm = {},
             onErrorConsumed = {},

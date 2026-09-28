@@ -6,18 +6,19 @@ import com.notesdusecouriste.feature.interventionnotes.ui.components.ChoiceTone
 object MesureChoices {
     val respirationAmplitude = listOf(
         ChoiceOption("normale", "Normale", ChoiceTone.Green),
-        ChoiceOption("forte", "Forte", ChoiceTone.Yellow),
-        ChoiceOption("faible", "Faible", ChoiceTone.Orange),
+        ChoiceOption("difficile", "Difficile", ChoiceTone.Orange),
+        ChoiceOption("superficielle", "Superficielle", ChoiceTone.Orange),
     )
     val respirationRegularite = listOf(
-        ChoiceOption("regulier", "Régulier", ChoiceTone.Green),
-        ChoiceOption("irregulier", "Irrégulier", ChoiceTone.Yellow),
+        ChoiceOption("regulier", "Régulière", ChoiceTone.Green),
+        ChoiceOption("irregulier", "Irrégulière", ChoiceTone.Orange),
+        ChoiceOption("pause", "Pause respiratoire", ChoiceTone.Orange),
+        ChoiceOption("bruyante", "Bruyante", ChoiceTone.Orange),
     )
     val respirationAspect = listOf(
         ChoiceOption("normal", "Normal", ChoiceTone.Green),
         ChoiceOption("violace", "Violacé", ChoiceTone.Orange),
         ChoiceOption("pale", "Pâle", ChoiceTone.Orange),
-        ChoiceOption("autre", "Autre", ChoiceTone.Orange),
     )
     val circulationAmplitude = listOf(
         ChoiceOption("frappe", "Frappé", ChoiceTone.Green),
@@ -25,11 +26,14 @@ object MesureChoices {
     )
     val circulationRegularite = listOf(
         ChoiceOption("regulier", "Régulier", ChoiceTone.Green),
-        ChoiceOption("irregulier", "Irrégulier", ChoiceTone.Yellow),
+        ChoiceOption("irregulier", "Irrégulier", ChoiceTone.Orange),
+        ChoiceOption("irregulier_pause", "Irrégulier avec pause", ChoiceTone.Orange),
     )
     val circulationAspect = listOf(
         ChoiceOption("normal", "Normal", ChoiceTone.Green),
-        ChoiceOption("anormal", "Anormal", ChoiceTone.Orange),
+        ChoiceOption("violace", "Violacé", ChoiceTone.Orange),
+        ChoiceOption("pale", "Pâle", ChoiceTone.Orange),
+        ChoiceOption("marbrures", "Marbrures", ChoiceTone.Orange),
     )
     val trc = listOf(
         ChoiceOption("inf_2", "inf. 2 sec.", ChoiceTone.Green),

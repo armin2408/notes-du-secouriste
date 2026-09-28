@@ -1,6 +1,6 @@
 # Checklist test manuel — NOTES DU SECOURISTE
 
-**Version cible :** `0.3.0-beta`  
+**Version cible :** `0.3.1-beta`  
 Référence : [`_bmad-output/implementation-artifacts/implementation-status.md`](../_bmad-output/implementation-artifacts/implementation-status.md)
 
 ---

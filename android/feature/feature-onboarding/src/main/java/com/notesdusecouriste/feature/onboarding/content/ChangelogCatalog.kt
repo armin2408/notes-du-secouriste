@@ -15,6 +15,24 @@ data class ChangelogEntry(
 object ChangelogCatalog {
     val entries: List<ChangelogEntry> = listOf(
         ChangelogEntry(
+            versionCode = 8,
+            versionName = "0.3.1-beta",
+            title = "Palette verte, raccourcis et export groupé",
+            bodyMarkdown = """
+                ## Nouveautés
+                - Raccourcis depuis l’icône : nouvelle note, aide-mémoire
+                - Export groupé : télécharger ou partager plusieurs notes en PDF
+                - Questionnaires SAMPLE et OPQRST dans les notes d’intervention
+                - Écran « À propos » et réglages réorganisés
+                - Accueil repensé avec démonstrations vidéo
+
+                ## Améliorations
+                - Nouvelle palette verte et nouveau logo (aussi sur le PDF)
+                - Libellés des constantes complets (fréquence ventilatoire, saturation O₂…)
+                - Onglets des relevés de mesures plus lisibles (Material 3)
+            """.trimIndent(),
+        ),
+        ChangelogEntry(
             versionCode = 7,
             versionName = "0.3.0-beta",
             title = "Accueil, journal et identité visuelle",

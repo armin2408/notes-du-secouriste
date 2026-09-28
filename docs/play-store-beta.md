@@ -5,8 +5,8 @@ Guide pas à pas pour publier la **version bêta** sur Google Play. État techni
 | Élément | Valeur actuelle |
 |---------|-----------------|
 | Package | `com.notesdusecouriste.app` |
-| versionCode | `7` (incrémenter à chaque upload) |
-| versionName | `0.3.0-beta` |
+| versionCode | `8` (incrémenter à chaque upload) |
+| versionName | `0.3.1-beta` |
 | minSdk | 26 |
 | targetSdk | 36 |
 | Réseau | Aucune permission `INTERNET` — app hors ligne |

@@ -1,17 +1,24 @@
 package com.notesdusecouriste.app.ui.home
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -20,9 +27,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.notesdusecouriste.app.R
 import com.notesdusecouriste.core.data.model.Intervention
@@ -32,14 +42,15 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val ListDividerInsetDefault = 16.dp
-private val ListDividerInsetSelection = 72.dp
+private val SegmentOuterRadius = 20.dp
+private val SegmentInnerRadius = 4.dp
+private val SegmentGap = 2.dp
 
 private val listDateFormatter =
     DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm", Locale.FRANCE)
 
 /**
- * Liste groupée d’interventions — [Material 3 Lists](https://m3.material.io/components/lists/specs).
+ * Liste segmentée d’interventions — [Material 3 Expressive Lists](https://m3.material.io/components/lists/overview).
  */
 @Composable
 fun InterventionHistoryList(
@@ -53,36 +64,37 @@ fun InterventionHistoryList(
     onDeleteClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val dividerInset = if (isSelectionMode) ListDividerInsetSelection else ListDividerInsetDefault
-
-    Surface(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        verticalArrangement = Arrangement.spacedBy(SegmentGap),
     ) {
-        Column {
-            interventions.forEachIndexed { index, intervention ->
-                val selected = intervention.id in selectedIds
-                InterventionListItem(
-                    intervention = intervention,
-                    isSelectionMode = isSelectionMode,
-                    isSelected = selected,
-                    onOpen = { onOpen(intervention.id) },
-                    onOpenRecap = { onOpenRecap(intervention.id) },
-                    onLongPress = { onLongPress(intervention.id) },
-                    onToggleSelection = { onToggleSelection(intervention.id) },
-                    onDeleteClick = { onDeleteClick(intervention.id) },
-                )
-                if (index < interventions.lastIndex) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = dividerInset),
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-                }
-            }
+        interventions.forEachIndexed { index, intervention ->
+            val selected = intervention.id in selectedIds
+            InterventionListItem(
+                intervention = intervention,
+                isSelectionMode = isSelectionMode,
+                isSelected = selected,
+                segmentIndex = index,
+                segmentCount = interventions.size,
+                onOpen = { onOpen(intervention.id) },
+                onOpenRecap = { onOpenRecap(intervention.id) },
+                onLongPress = { onLongPress(intervention.id) },
+                onToggleSelection = { onToggleSelection(intervention.id) },
+                onDeleteClick = { onDeleteClick(intervention.id) },
+            )
         }
     }
 }
+
+@Composable
+private fun animateSegmentCorner(rounded: Boolean) = animateDpAsState(
+    targetValue = if (rounded) SegmentOuterRadius else SegmentInnerRadius,
+    animationSpec = spring(
+        dampingRatio = Spring.DampingRatioMediumBouncy,
+        stiffness = Spring.StiffnessMedium,
+    ),
+    label = "segmentCorner",
+)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -96,14 +108,25 @@ fun InterventionListItem(
     isSelectionMode: Boolean = false,
     isSelected: Boolean = false,
     onToggleSelection: () -> Unit = {},
+    segmentIndex: Int = 0,
+    segmentCount: Int = 1,
 ) {
     val recapDescription = stringResource(R.string.content_description_open_recap)
     val deleteDescription = stringResource(R.string.content_description_delete_intervention)
     val canOpenSynthesis = intervention.hasSynthesisContent
 
+    val top by animateSegmentCorner(isSelected || segmentIndex == 0)
+    val bottom by animateSegmentCorner(isSelected || segmentIndex == segmentCount - 1)
+    val containerColor by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+        label = "itemContainer",
+    )
+    val shape = RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom)
+
     ListItem(
         modifier = modifier
             .fillMaxWidth()
+            .clip(shape)
             .combinedClickable(
                 onClick = {
                     if (isSelectionMode) onToggleSelection() else onOpen()
@@ -113,16 +136,15 @@ fun InterventionListItem(
                 },
             ),
         colors = ListItemDefaults.colors(
-            containerColor = when {
-                isSelected -> MaterialTheme.colorScheme.secondaryContainer
-                else -> Color.Transparent
-            },
+            containerColor = containerColor,
         ),
         headlineContent = {
             Text(
                 text = formatIdentityLine(intervention),
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         },
         supportingContent = {
@@ -140,7 +162,7 @@ fun InterventionListItem(
                 )
             }
         } else {
-            null
+            { InterventionAvatar(intervention) }
         },
         trailingContent = if (!isSelectionMode) {
             {
@@ -176,6 +198,31 @@ fun InterventionListItem(
             null
         },
     )
+}
+
+@Composable
+private fun InterventionAvatar(intervention: Intervention) {
+    val initials = listOfNotNull(intervention.prenom, intervention.nom)
+        .mapNotNull { it.trim().firstOrNull()?.uppercaseChar() }
+        .joinToString("")
+    Surface(
+        modifier = Modifier.size(40.dp),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (initials.isNotEmpty()) {
+                Text(text = initials, style = MaterialTheme.typography.titleSmall)
+            } else {
+                Icon(
+                    imageVector = Icons.Outlined.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
+    }
 }
 
 private fun formatIdentityLine(intervention: Intervention): String =

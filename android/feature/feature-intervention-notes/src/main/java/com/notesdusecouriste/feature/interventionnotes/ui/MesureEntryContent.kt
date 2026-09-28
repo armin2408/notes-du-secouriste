@@ -80,7 +80,7 @@ fun LazyListScope.mesureEntryLazySections(
                         maxDigits = 3,
                     )
                     ChoiceChipGroup(
-                        label = context.getString(R.string.field_amplitude),
+                        label = context.getString(R.string.field_amplitude_respiratoire),
                         options = MesureChoices.respirationAmplitude,
                         selectedKey = r.amplitude,
                         onSelect = { key ->
@@ -88,7 +88,7 @@ fun LazyListScope.mesureEntryLazySections(
                         },
                     )
                     ChoiceChipGroup(
-                        label = context.getString(R.string.field_regularite),
+                        label = context.getString(R.string.field_regularite_respiratoire),
                         options = MesureChoices.respirationRegularite,
                         selectedKey = r.regularite,
                         onSelect = { key ->

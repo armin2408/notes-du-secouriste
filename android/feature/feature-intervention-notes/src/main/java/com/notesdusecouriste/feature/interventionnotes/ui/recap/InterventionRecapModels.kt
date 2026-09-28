@@ -1,12 +1,14 @@
 package com.notesdusecouriste.feature.interventionnotes.ui.recap
 
-
+import androidx.compose.ui.graphics.vector.ImageVector
 
 data class RecapLine(
 
     val label: String,
 
     val value: String,
+
+    val icon: ImageVector? = null,
 
 )
 
@@ -29,6 +31,8 @@ enum class RecapCellTone {
     Yellow,
 
     Orange,
+
+    Red,
 
 }
 
@@ -65,6 +69,8 @@ data class RecapMeasuresTable(
     val columnHeaders: List<String>,
 
     val rows: List<RecapTableRow>,
+
+    val measureColumnHeader: String = "",
 
 )
 
