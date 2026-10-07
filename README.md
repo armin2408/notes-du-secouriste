@@ -1,3 +1,5 @@
+<p align="center"><img src="android/app/branding/logo-nds.png" width="120" alt="Logo"></p>
+
 # Notes du Secouriste
 
 Application Android **100 % hors ligne** pour structurer les notes de terrain en secourisme (PSE) : comme un bloc-notes numérique pensé pour l’intervention, pas un dossier médical.
