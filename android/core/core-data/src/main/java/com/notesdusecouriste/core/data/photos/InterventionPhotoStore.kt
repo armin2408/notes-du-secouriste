@@ -1,12 +1,18 @@
 package com.notesdusecouriste.core.data.photos
 
+import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -60,6 +66,84 @@ class InterventionPhotoStore @Inject constructor(
         return fileName
     }
 
+    /**
+     * Pivote la photo de 90° (sens horaire) dans un nouveau fichier et supprime l’ancien.
+     * Le nom change pour invalider les bitmaps mis en cache côté UI.
+     */
+    fun rotateClockwise(fileName: String): String {
+        val source = resolveFile(fileName)
+        val original = BitmapFactory.decodeFile(source.absolutePath)
+            ?: error("Image illisible.")
+        val matrix = Matrix().apply { postRotate(90f) }
+        val rotated = Bitmap.createBitmap(
+            original, 0, 0, original.width, original.height, matrix, true,
+        )
+        if (rotated !== original) original.recycle()
+        val newFileName = "${UUID.randomUUID()}.jpg"
+        val dest = resolveFile(newFileName)
+        try {
+            FileOutputStream(dest).use { out ->
+                if (!rotated.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)) {
+                    error("Échec compression JPEG.")
+                }
+            }
+        } catch (e: Exception) {
+            dest.delete()
+            throw e
+        } finally {
+            rotated.recycle()
+        }
+        return newFileName
+    }
+
+    /** Copie la photo dans la galerie publique (Pictures/Notes du Secouriste). */
+    fun exportToGallery(fileName: String) {
+        val source = resolveFile(fileName)
+        require(source.exists()) { "Photo introuvable." }
+        val displayName = "NotesSecouriste_${System.currentTimeMillis()}.jpg"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val resolver = context.contentResolver
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                put(
+                    MediaStore.Images.Media.RELATIVE_PATH,
+                    "${Environment.DIRECTORY_PICTURES}/$GALLERY_ALBUM",
+                )
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+            val collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            val uri = resolver.insert(collection, values) ?: error("Galerie indisponible.")
+            try {
+                resolver.openOutputStream(uri).use { out ->
+                    requireNotNull(out) { "Galerie indisponible." }
+                    source.inputStream().use { it.copyTo(out) }
+                }
+                values.clear()
+                values.put(MediaStore.Images.Media.IS_PENDING, 0)
+                resolver.update(uri, values, null, null)
+            } catch (e: Exception) {
+                resolver.delete(uri, null, null)
+                throw e
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            val dir = File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                GALLERY_ALBUM,
+            )
+            if (!dir.exists() && !dir.mkdirs()) error("Galerie indisponible.")
+            val dest = File(dir, displayName)
+            source.copyTo(dest, overwrite = true)
+            MediaScannerConnection.scanFile(
+                context,
+                arrayOf(dest.absolutePath),
+                arrayOf("image/jpeg"),
+                null,
+            )
+        }
+    }
+
     fun deleteFile(fileName: String) {
         resolveFile(fileName).delete()
     }
@@ -86,6 +170,7 @@ class InterventionPhotoStore @Inject constructor(
 
     companion object {
         const val DIR_NAME = "intervention_photos"
+        private const val GALLERY_ALBUM = "Notes du Secouriste"
         private const val MAX_EDGE_PX = 1920
         private const val JPEG_QUALITY = 85
 

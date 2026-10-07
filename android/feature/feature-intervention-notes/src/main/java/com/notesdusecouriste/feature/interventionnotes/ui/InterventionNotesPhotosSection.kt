@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -18,9 +20,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -34,8 +38,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.Rotate90DegreesCw
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -226,6 +232,24 @@ private fun PhotosSectionBody(
 ) {
     var previewStartIndex by remember { mutableStateOf<Int?>(null) }
 
+    previewStartIndex?.let { startIndex ->
+        if (uiState.photos.isNotEmpty()) {
+            PhotoFullscreenViewer(
+                photos = uiState.photos,
+                resolvePath = viewModel::resolvePhotoPath,
+                initialIndex = startIndex.coerceIn(0, uiState.photos.lastIndex),
+                actionsEnabled = !uiState.isPhotoActionInProgress,
+                onDelete = viewModel::requestDeletePhoto,
+                onRotate = viewModel::rotatePhoto,
+                onSaveToGallery = viewModel::savePhotoToGallery,
+                onDismiss = { previewStartIndex = null },
+            )
+        } else {
+            previewStartIndex = null
+        }
+    }
+
+    // Composé après la visionneuse pour s’afficher au-dessus en plein écran.
     uiState.photoPendingDeleteId?.let {
         AlertDialog(
             onDismissRequest = viewModel::dismissDeletePhoto,
@@ -245,19 +269,6 @@ private fun PhotosSectionBody(
                 }
             },
         )
-    }
-
-    previewStartIndex?.let { startIndex ->
-        if (uiState.photos.isNotEmpty()) {
-            PhotoFullscreenViewer(
-                photos = uiState.photos,
-                resolvePath = viewModel::resolvePhotoPath,
-                initialIndex = startIndex.coerceIn(0, uiState.photos.lastIndex),
-                onDismiss = { previewStartIndex = null },
-            )
-        } else {
-            previewStartIndex = null
-        }
     }
 
     NoteSectionCard {
@@ -315,8 +326,8 @@ private fun PhotoThumbnail(
     }
     Box(
         modifier = Modifier
-            .width(120.dp)
-            .height(120.dp)
+            .width(150.dp)
+            .height(150.dp)
             .clip(RoundedCornerShape(8.dp)),
     ) {
         val imageModifier = Modifier
@@ -364,13 +375,60 @@ private fun PhotoFullscreenViewer(
     photos: List<InterventionPhoto>,
     resolvePath: (String) -> String,
     initialIndex: Int,
+    actionsEnabled: Boolean,
+    onDelete: (Long) -> Unit,
+    onRotate: (Long, (Boolean) -> Unit) -> Unit,
+    onSaveToGallery: (Long, (Boolean) -> Unit) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     val pagerState = rememberPagerState(
         initialPage = initialIndex,
         pageCount = { photos.size },
     )
     var currentPageScale by remember { mutableFloatStateOf(1f) }
+
+    fun currentPhoto(): InterventionPhoto? =
+        photos.getOrNull(pagerState.currentPage.coerceIn(0, photos.lastIndex))
+
+    fun saveCurrentToGallery() {
+        val photo = currentPhoto() ?: return
+        onSaveToGallery(photo.id) { success ->
+            val message = if (success) {
+                R.string.photos_download_success
+            } else {
+                R.string.photos_download_error
+            }
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            saveCurrentToGallery()
+        } else {
+            Toast.makeText(
+                context,
+                R.string.photos_storage_permission_denied,
+                Toast.LENGTH_LONG,
+            ).show()
+        }
+    }
+
+    fun requestSaveToGallery() {
+        val needsPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            ) != PackageManager.PERMISSION_GRANTED
+        if (needsPermission) {
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        } else {
+            saveCurrentToGallery()
+        }
+    }
 
     LaunchedEffect(pagerState.currentPage) {
         currentPageScale = 1f
@@ -440,6 +498,60 @@ private fun PhotoFullscreenViewer(
                 )
             }
 
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .statusBarsPadding()
+                    .padding(8.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.45f),
+                        shape = RoundedCornerShape(24.dp),
+                    ),
+            ) {
+                IconButton(
+                    onClick = { currentPhoto()?.let { onDelete(it.id) } },
+                    enabled = actionsEnabled,
+                ) {
+                    Icon(
+                        Icons.Outlined.Delete,
+                        contentDescription = stringResource(R.string.photos_delete_confirm),
+                        tint = Color.White,
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        currentPhoto()?.let { photo ->
+                            onRotate(photo.id) { success ->
+                                if (!success) {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.photos_rotate_error,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                        }
+                    },
+                    enabled = actionsEnabled,
+                ) {
+                    Icon(
+                        Icons.Outlined.Rotate90DegreesCw,
+                        contentDescription = stringResource(R.string.photos_rotate),
+                        tint = Color.White,
+                    )
+                }
+                IconButton(
+                    onClick = { requestSaveToGallery() },
+                    enabled = actionsEnabled,
+                ) {
+                    Icon(
+                        Icons.Outlined.Download,
+                        contentDescription = stringResource(R.string.photos_download),
+                        tint = Color.White,
+                    )
+                }
+            }
+
             if (photos.size > 1) {
                 Text(
                     text = stringResource(
@@ -450,9 +562,9 @@ private fun PhotoFullscreenViewer(
                     color = Color.White,
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .statusBarsPadding()
-                        .padding(top = 16.dp)
+                        .align(Alignment.BottomCenter)
+                        .navigationBarsPadding()
+                        .padding(bottom = 16.dp)
                         .background(
                             color = Color.Black.copy(alpha = 0.45f),
                             shape = RoundedCornerShape(12.dp),

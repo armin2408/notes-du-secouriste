@@ -61,6 +61,27 @@ class InterventionPhotoRepository @Inject constructor(
         }
     }
 
+    suspend fun rotatePhotoClockwise(photoId: Long) {
+        withContext(Dispatchers.IO) {
+            val entity = photoDao.getById(photoId) ?: return@withContext
+            val newFileName = photoStore.rotateClockwise(entity.fileName)
+            try {
+                photoDao.updateFileName(photoId, newFileName)
+            } catch (e: Exception) {
+                photoStore.deleteFile(newFileName)
+                throw e
+            }
+            photoStore.deleteFile(entity.fileName)
+        }
+    }
+
+    suspend fun exportPhotoToGallery(photoId: Long) {
+        withContext(Dispatchers.IO) {
+            val entity = photoDao.getById(photoId) ?: error("Photo introuvable.")
+            photoStore.exportToGallery(entity.fileName)
+        }
+    }
+
     suspend fun deleteAllForIntervention(interventionId: Long) {
         withContext(Dispatchers.IO) {
             val photos = photoDao.getByInterventionId(interventionId)

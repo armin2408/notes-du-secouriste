@@ -27,6 +27,9 @@ interface InterventionPhotoDao {
     @Query("SELECT * FROM intervention_photos WHERE interventionId = :interventionId")
     suspend fun getByInterventionId(interventionId: Long): List<InterventionPhotoEntity>
 
+    @Query("UPDATE intervention_photos SET fileName = :fileName WHERE id = :id")
+    suspend fun updateFileName(id: Long, fileName: String)
+
     @Query("DELETE FROM intervention_photos WHERE id = :id")
     suspend fun deleteById(id: Long)
 

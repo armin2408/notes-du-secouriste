@@ -171,4 +171,10 @@
     <string name="photos_source_title">Ajouter une photo</string>
     <string name="photos_close_preview">Fermer</string>
     <string name="photos_preview_counter">%1$d / %2$d</string>
+    <string name="photos_rotate">Pivoter de 90°</string>
+    <string name="photos_download">Enregistrer dans la galerie</string>
+    <string name="photos_download_success">Photo enregistrée dans la galerie (Images › Notes du Secouriste).</string>
+    <string name="photos_rotate_error">Impossible de pivoter la photo.</string>
+    <string name="photos_download_error">Impossible d’enregistrer la photo dans la galerie.</string>
+    <string name="photos_storage_permission_denied">Autorisation de stockage refusée : impossible d’enregistrer la photo dans la galerie.</string>
 </resources>

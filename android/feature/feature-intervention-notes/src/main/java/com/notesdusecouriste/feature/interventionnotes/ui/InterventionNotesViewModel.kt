@@ -47,6 +47,7 @@ data class InterventionNotesUiState(
     val showPhotoSourceDialog: Boolean = false,
     val photoPendingDeleteId: Long? = null,
     val isImportingPhoto: Boolean = false,
+    val isPhotoActionInProgress: Boolean = false,
 )
 
 @HiltViewModel
@@ -166,6 +167,24 @@ class InterventionNotesViewModel @Inject constructor(
                     it.copy(errorMessage = error.message ?: "Impossible de supprimer la photo.")
                 }
             }
+        }
+    }
+
+    fun rotatePhoto(photoId: Long, onResult: (Boolean) -> Unit) {
+        runPhotoAction(onResult) { photoRepository.rotatePhotoClockwise(photoId) }
+    }
+
+    fun savePhotoToGallery(photoId: Long, onResult: (Boolean) -> Unit) {
+        runPhotoAction(onResult) { photoRepository.exportPhotoToGallery(photoId) }
+    }
+
+    private fun runPhotoAction(onResult: (Boolean) -> Unit, action: suspend () -> Unit) {
+        if (_uiState.value.isPhotoActionInProgress) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isPhotoActionInProgress = true) }
+            val result = runCatching { action() }
+            _uiState.update { it.copy(isPhotoActionInProgress = false) }
+            onResult(result.isSuccess)
         }
     }
 
